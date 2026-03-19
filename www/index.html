@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Basada en la guía de Antibioterapia del HUCSC 2025.">
+    <meta name="theme-color" content="#8f1e27">
+    <title>ABCalc - Aplicación</title>
+
+    <link rel="manifest" href="/ABCalcApp/www/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ABCalc">
+    
+    <link rel="apple-touch-icon" href="/ABCalcApp/www/icons/icon-192.png">
+    <link rel="icon" href="/ABCalcApp/www/icons/icon-48.png" type="image/png">
+    
+    <style>
+        /* Fuente moderna Poppins */
+        @font-face {
+            font-family: 'Poppins';
+            src: url('./fonts/poppins-v24-latin-regular.woff2') format('woff2');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Poppins';
+            src: url('./fonts/poppins-v24-latin-600.woff2') format('woff2');
+            font-weight: 600;
+        }
+        
+        /* ======== Estilos base ======== */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f9fafb;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            color: #222;
+            -webkit-user-select: none; /* Safari y Chrome en iOS/Android */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+            user-select: none;         /* Estándar */
+            -webkit-touch-callout: none;
+        }
+
+        main.container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 380px; 
+            padding: 30px 15px; 
+            box-sizing: border-box;
+        }
+
+        /* ======== Logotipo ======== */
+        .logo-image {
+            width: 75%;
+            max-width: 250px;
+            height: auto;
+            margin-top: 30px;
+        }
+        .no-interact {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none; /* Esto evita el menú, pero también el clic */
+        }
+
+        /* ======== Texto descriptivo ======== */
+        .description-text {
+            font-size: 1em;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0 10px;
+            margin-bottom: 25px;
+        }
+
+        /* ======== Botones ======== */
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 0px;
+        }
+
+        .calculator-button {
+            display: block;
+            width: 80%;
+            max-width: 280px;
+            padding: 14px;
+            background-color: #2254c9; /* Un azul similar al del logo */
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            font-family: inherit; /* Para que no cambie la letra Poppins */
+            font-size: 1.05em;
+            font-weight: 600;
+            transition: all 0.1s ease;
+            border: none;         /* Elimina el relieve y el borde gris */
+            border-bottom: 4px solid #1b2b52;
+            text-align: center;   /* Centra el texto (el <button> no lo hace igual que el <a>) */
+            appearance: none;     /* Elimina estilos predeterminados de iOS/Android */
+            outline: none;        /* Evita el recuadro al hacer clic */
+        }
+
+        .calculator-button:active {
+            transform: translateY(2px); 
+            border-bottom-width: 2px;
+            background-color: #152f6b;
+        }
+        /* Que el modal esté oculto por defecto para evitar el parpadeo */
+        #legalModal {
+            display: none; 
+        }
+        /* ======== Responsividad ======== */
+         @media (min-width: 600px) {
+            main.container {
+                height: 90vh; 
+                max-width: 500px; 
+                justify-content: space-evenly; 
+            }
+            .logo-image {
+                /* AJUSTE FINAL DE TAMAÑO: Logo más pequeño en PC */
+                width: 50%; 
+                max-width: 180px; 
+                margin-bottom: 0; 
+            }
+            .description-text {
+                margin-bottom: 0;
+            }
+            .calculator-button {
+                font-size: 1em; /* Ligeramente más pequeños en PC */
+            }
+        }
+ /* Clase común para ambos banners (iOS y el contenedor de Android) */
+.install-banner-style {
+    display: none; /* Se activa por JS */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado perfecto en pantalla */
+    width: 90%;
+    max-width: 400px;
+    background-color: #8f1e27;
+    color: white;
+    padding: 25px 15px 15px 15px;
+    border-radius: 15px;
+    z-index: 10001;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Aplicamos la clase a ambos IDs */
+#ios-install-banner, #android-install-container {
+    /* Heredan todo lo de arriba */
+}
+
+/* El botón blanco específico de Android */
+#android-install-button {
+    display: block;
+    width: 100%;
+    background-color: white;
+    color: #8f1e27;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+#ios-install-banner strong {
+    color: #fca5a5;
+}
+
+/* La X de cierre */
+.close-banner {
+    position: absolute;
+    top: 5px;
+    right: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.close-banner:hover {
+    opacity: 1;
+}
+    </style>
+</head>
+<body>
+    <main class="container">
+        <img src="ABCalc.png" alt="Logotipo de ABCalc" class="logo-image no-interact">
+
+        <p class="description-text">
+            <strong>Aplicación que implementa la Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio de Granada 2025.</strong><br>
+            Comisión de infecciones hospitalarias. Grupo PROA. Grupo CÓDIGO SÉPSIS</em>.
+        </p>
+
+       <div class="buttons-container">
+            <button onclick="window.location.href='abcalc.html'" class="calculator-button">
+            Iniciar Guía
+            </button>
+       </div>
+    </main>
+    
+<div id="legalModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div style="background-color:white; padding:30px; border-radius:20px; width:85%; max-width:400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: sans-serif;">
+        <div style="text-align:center; margin-bottom:15px;">
+            <span style="font-size: 50px;">⚠️</span>
+        </div>
+        <h2 style="color:#333; margin-top:0; text-align:center; font-size:22px;">Aviso Legal</h2>
+        <div style="font-size:14px; line-height:1.6; color:#444; margin-bottom:20px; text-align: justify;">
+            <strong>ABCalc</strong> es una herramienta de apoyo para <strong>profesionales sanitarios</strong>. No está diseñada para pacientes. 
+            <br>
+            Los fármacos y dosis se basan en literatura científica, pero <strong>no sustituyen el juicio clínico</strong>. El uso de esta app implica la aceptación de que el tratamiento final es responsabilidad exclusiva del médico.
+            <br>
+            El usuario debe verificar que los datos registrados son correctos.
+            <br>
+            El desarrollador no se hace responsable de errores u omisiones ni de las consecuencias derivadas del uso de esta información.
+        </div>
+        <button id="btnAceptarLegal" style="width:100%; background-color:#8f1e27; color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 4px 10px rgba(0,122,255,0.3);">
+            Entiendo y Acepto
+        </button>
+    </div>
+</div>
+<div id="ios-install-banner" class="install-banner-style">
+        <span class="close-banner" onclick="this.parentElement.style.display='none'">&times;</span>
+        <div style="margin-bottom: 5px;"><strong>¿Instalar ABCalc?</strong></div>
+        Pulsa el icono de compartir <img src="Ios-Share.png" style="width:18px; vertical-align: middle; filter: brightness(0) invert(1); opacity: 0.9;"> y selecciona <strong>"Añadir a la pantalla de inicio"</strong>.
+    </div>
+
+    <div id="android-install-container" class="install-banner-style">
+        <span class="close-banner" onclick="this.parentElement.style.display='none'">&times;</span>
+        <div style="margin-bottom: 5px;"><strong>¿Usar como App?</strong></div>
+        <div style="font-size: 14px;">Para acceso rápido y sin conexión.</div>
+        <button id="android-install-button">✚ Instalar Ahora</button>
+    </div>
+
+<script>
+        // Lógica del Modal
+       (function() {
+           const modal = document.getElementById("legalModal");
+           const btnAceptar = document.getElementById("btnAceptarLegal");
+
+           function verificarAviso() {
+        // Usamos una clave única para ABCalc
+           const aceptado = localStorage.getItem("abCalc_legal");
+        
+           if (aceptado === "true") {
+               modal.style.setProperty("display", "none", "important");
+           } else {
+               modal.style.setProperty("display", "flex", "important");
+           }
+        }
+
+    verificarAviso();
+
+    btnAceptar.onclick = function() {
+        // Guardamos con la misma clave única
+        localStorage.setItem("abCalc_legal", "true");
+        modal.style.display = "none";
+    };
+})();
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // Mantenemos TU ruta que ya funciona
+      navigator.serviceWorker.register('/ABCalcApp/www/sw.js')
+        .then(reg => {
+          console.log('SW registrado en la ruta ABCalcApp');
+          
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Esto es lo que ayudará a tu iPhone a saber que hay cambios
+                console.log('Nueva versión lista. Cierra y abre la app.');
+              }
+            };
+          };
+        })
+        .catch(err => console.error('Error en ruta SW:', err));
+    });
+  }
+  // Bloqueo específico para Android/Chrome PWA
+  document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+      event.preventDefault(); // Bloquea el gesto de pinza
+    }
+  }, { passive: false });
+  
+  const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+    };
+
+    const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+    // --- LÓGICA IPHONE ---
+    if (isIos() && !isInStandaloneMode()) {
+        const iosBanner = document.getElementById('ios-install-banner');
+        iosBanner.style.display = 'block';
+        // Se oculta solo tras 12 segundos para dar tiempo a leer
+        setTimeout(() => { iosBanner.style.display = 'none'; }, 12000);
+    }
+
+    // --- LÓGICA ANDROID COMPLETA ---
+let deferredPrompt;
+const androidContainer = document.getElementById('android-install-container');
+const androidBtn = document.getElementById('android-install-button');
+
+// 1. CAPTURA DEL EVENTO (Chrome nativo)
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('Evento beforeinstallprompt capturado');
+    e.preventDefault(); 
+    deferredPrompt = e;  
+    
+    if (androidContainer) {
+        androidContainer.style.display = 'block';
+    }
+});
+
+// 1b. PLAN B: Si en 4 segundos no ha saltado el evento (Navegador de Google/Cámara)
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const isAndroid = /android/.test(navigator.userAgent.toLowerCase());
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        
+        // Detectamos específicamente el visor de Google (GSA)
+        const isGoogleApp = /gsa/i.test(navigator.userAgent.toLowerCase());
+
+        // Solo actuamos si es Android, no está instalada y NO ha saltado el evento de Chrome
+        if (isAndroid && !isStandalone && !deferredPrompt) {
+            
+            // Si el banner ya está visible (porque Chrome sí lanzó el evento), no hacemos nada
+            if (androidContainer && androidContainer.style.display !== 'block') {
+                
+                console.log("Modo ayuda: Navegador de Google detectado.");
+                
+                androidContainer.innerHTML = `
+                    <span class="close-banner" onclick="this.parentElement.style.display='none'">&times;</span>
+                    <div style="font-size: 14px; margin-bottom: 8px; line-height: 1.4;">
+                        <strong style="color: #fca5a5;">Instalación:</strong><br>
+                        Pulsa la <strong>flecha (↓)</strong> arriba <br> o los <strong>tres puntos (⋮)</strong> y "Instalar".
+                    </div>
+                    <button id="android-manual-btn" style="width: 100%; background: white; color: #8f1e27; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">ENTENDIDO</button>
+                `;
+                androidContainer.style.setProperty('display', 'block', 'important');
+
+                document.getElementById('android-manual-btn').onclick = () => {
+                    androidContainer.style.display = 'none';
+                };
+            }
+        }
+    }, 6000); // Subimos a 6 segundos para dar tiempo de sobra a Chrome
+});
+
+// 2. EJECUCIÓN DE LA INSTALACIÓN (Solo si deferredPrompt existe)
+if (androidBtn) {
+    androidBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            androidContainer.style.display = 'none';
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`Usuario eligió: ${outcome}`);
+            deferredPrompt = null;
+        }
+    });
+}
+
+// 3. DETECTAR SI SE INSTALÓ
+window.addEventListener('appinstalled', () => {
+    console.log('App instalada con éxito');
+    if (androidContainer) {
+        androidContainer.style.display = 'none';
+    }
+    deferredPrompt = null;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Antibioterapia HUCSC 2025</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="manifest" href="/ABCalcApp/www/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ABCalc">
+
+    <link rel="apple-touch-icon" href="/ABCalcApp/www/icons/icon-192.png">
+    <link rel="icon" href="/ABCalcApp/www/icons/icon-48.png" type="image/png">
+    <style>
+         :root { --azul-husc: #004a99; --verde-husc: #00d1b2; }
+         body { background-color: #d2d3d4; font-family: 'Segoe UI', Roboto, sans-serif; color: #333; }
+        .header-app { background: var(--azul-husc); color: white; padding: 15px; border-bottom: 5px solid var(--verde-husc); position: sticky; top: 0; z-index: 1000; }
+        .container-app { width: 100%; padding: 10px; margin: 0 auto; }
+        .card-main { border: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background: white; overflow: hidden; }
+        
+        /* Ajuste Renal Style */
+        .renal-calc { background: #eef7ff; border: 1px solid var(--azul-husc); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .renal-table { font-size: 0.85rem; width: 100%; border-collapse: collapse; }
+        .renal-table th { background: var(--azul-husc); color: white; padding: 8px; }
+        .renal-table td { border-bottom: 1px solid #dee2e6; padding: 8px; transition: background-color 0.3s ease; }
+        .risk-active { background-color: #d1e7dd !important; font-weight: bold; border: 2px solid #198754 !important; transition: all 0.4s ease; }
+        /* Estilo para que las filas no resaltadas se vean normales */
+         tr { transition: all 0.4s ease; border: 2px solid transparent; }
+
+         /* PEN-FAST */
+        .fast-container { display: none; flex-direction: column; gap: 8px; margin-top: 15px; border-top: 2px dashed var(--verde-husc); padding-top: 15px; }
+        .fast-row { display: flex; align-items: center; background: white; padding: 10px; border-radius: 10px; border: 1px solid #dee2e6; }
+        .fast-letter { font-weight: bold; font-size: 1.3rem; color: var(--azul-husc); width: 60px; min-width: 60px; border-right: 2px solid var(--verde-husc); margin-right: 12px; text-align: center; }
+        .fast-text { flex-grow: 1; font-size: 1.0rem; }
+        .fast-check { width: 30px !important; height: 30px !important; min-width: 30px !important; min-height: 30px !important; flex-shrink: 0; border: 2px solid #004a99 !important; margin-left: 10px;cursor: pointer; }
+
+        /* Score Panels */
+        #score-panel { display: none; border-radius: 15px; padding: 15px; text-align: center; margin-top: 10px; font-weight: bold; color: white; transition: 0.3s; }
+        .risk-0 { background-color: #198754; } 
+        .risk-1-2 { background-color: #ffc107; color: #000; } 
+        .risk-3 { background-color: #fd7e14; } 
+        .risk-4-5 { background-color: #dc3545; }
+
+        /* MDR Section */
+        .mdr-title { font-size: 1.2rem; font-weight: bold; color: #495057; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #dee2e6; }
+        .list-mdr { font-size: 1.0rem; padding-left: 1.2rem; margin-bottom: 10px; list-style-type: square; }
+
+        /* Zoom Semáforo */
+        .zoom-box { overflow: auto; max-height: 70vh; background: #eee; border-radius: 10px; text-align: center; }
+        #img-semaforo { width: 100%; transition: transform 0.3s ease; cursor: zoom-in; }
+        #img-semaforo:active { transform: scale(2.5); cursor: grabbing; }
+
+        .btn-semaforo { background: white; border: 2px solid #004a99; border-radius: 50px; font-weight: bold; color: #004a99; padding: 6px 15px; font-size: 0.9rem; }
+        .card-main { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .text-justify {
+            text-align: justify;
+            hyphens: auto;      /* Divide las palabras largas con guiones si es necesario */
+            text-justify: inter-word; /* Mejora el reparto del espacio */
+        }
+        h3{ margin:8px 0; font-weight: bold; font-size:1rem; }
+        .alert-alergia {
+            border: 2px solid #dc3545 !important; /* Rojo perfilado */
+            background-color: #fff5f5; /* Fondo rosado muy suave */
+            color: #a94442;
+            margin-top: 15px;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .alergia-header {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 5px;
+            color: #dc3545;
+        }
+        .alerta-flash {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            animation: flash-border 1s infinite;
+        }
+        /* Contenedor del semáforo */
+        #wrapper-semaforo {
+            overflow: auto; 
+            max-height: 75vh; 
+            width: 100%;
+            display: block;
+            background-color: #f8f9fa;
+            scroll-behavior: smooth; /* Hace que el desplazamiento sea más fluido */
+            -webkit-overflow-scrolling: touch; /* Mejora el scroll táctil en iPhones/iPad */
+        }
+        #img-semaforo {
+            width: 100%; /* Tamaño inicial: se ajusta al modal */
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            transition: width 0.3s ease; /* Transición suave de ancho */
+            cursor: zoom-in;
+        }
+        /* Clase de Zoom: cambiamos el ancho real, no la escala */
+        .zoomed {
+            width: 250% !important; /* La imagen ahora es físicamente más grande que el scroll */
+            max-width: none !important; 
+            cursor: zoom-out !important;
+        }
+        @keyframes flash-border {
+            50% { border-left-color: #dc3545; }
+        }
+        .alerta-flash + .alert-info + .alert-alergia {
+            border-width: 3px !important;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.2);
+        }
+        .accordion-button {
+            hyphens: auto;      /* Activa la partición de palabras automática */
+            line-height: 1.2;   /* Estrecha un poco el espacio entre líneas */
+            padding-right: 2.5rem; /* Deja espacio para la flecha del acordeón sin pisar el texto */
+            display: flex !important;
+            align-items: center; /* Centra el emoji verticalmente con el texto */
+            text-align: left;
+            gap: 1px;
+        }
+        .accordion-button span {
+            margin: 0 !important; 
+        }
+        .accordion-button::before {
+            display: none; /* Por si acaso Bootstrap añade algún contenido previo */
+        }
+        @media (max-width: 380px) {
+        .accordion-button {
+            font-size: 0.9rem; /* Reduce ligeramente el texto en móviles muy estrechos */
+        }
+        }
+        .nota-micro {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--azul-husc);
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #444;
+        }
+        .nota-micro b { color: var(--azul-husc); }
+        .desescalar-badge {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+            border: 1px dashed #ced4da;
+        }
+        #alg-body ul { padding-left: 20px; }
+        #alg-body .alert { border-radius: 10px; border: none; }
+        /* Contenedor de botones en fila única */
+        #alg-footer {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important; /* Impide que el 'NO' baje a la siguiente línea */
+            gap: 10px;
+            padding: 15px;
+        }
+       /* Botones de respuesta rápida */
+       .btn-si-no {
+            flex: 1; /* Hace que ambos ocupen el mismo espacio exacto */
+            padding: 12px 2px !important;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap; /* Evita que la palabra 'SÍ' o 'NO' se parta */
+            font-size: 0.9rem;
+        }
+        /* Contenedor principal de la escala */
+        .curb-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        /* Filas táctiles y espaciosas */
+        .curb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 12px; /* Más espacio para el dedo */
+            margin-bottom: 8px;
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        /* Al marcar el check, la fila cambia ligeramente de color */
+        .curb-row:has(input:checked) {
+            background-color: #e7f5ff;
+            border: 1px solid #74c0fc;
+        }
+        /* Texto de la escala más legible */
+        .curb-label {
+            font-size: 1.3rem; /* Tamaño estándar de lectura */
+            font-weight: 500;
+            color: #343a40;
+            flex: 1;
+            padding-right: 15px;
+        }
+        /* Checkboxes grandes y separados */
+        .curb-check {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #004a99; /* Color corporativo */
+        }
+        /* Badge de puntuación más llamativo */
+        .curb-score-header {
+           font-size: 1.1rem;
+           font-weight: 800;
+           color: #004a99;
+           text-align: center;
+           padding: 10px;
+           border-bottom: 2px solid #e9ecef;
+           margin-bottom: 15px;
+        }
+        /* Filas grandes para uso con pulgar */
+        .score-row {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           padding: 16px 14px; /* Espaciado generoso */
+           margin-bottom: 8px;
+           background-color: #f8f9fa;
+           border-radius: 10px;
+           border: 1px solid #e9ecef;
+           cursor: pointer;
+        }
+        /* Checkbox grande */
+        .check-grande {
+           width: 24px;
+           height: 24px;
+           cursor: pointer;
+           accent-color: #d63384; /* Un color distinto para diferenciar escalas si quieres */
+        }
+        /* Estilo para el texto de la escala */
+        .label-score {
+           font-size: 1.05rem;
+           font-weight: 500;
+           color: #212529;
+        }
+        .btn-calculadora {
+           background-color: #f3e5f5; /* Púrpura muy tenue */
+           color: #7b1fa2; /* Púrpura oscuro para el texto */
+           border: 1px solid #e1bee7;
+           border-radius: 8px;
+           padding: 12px 15px;
+           margin: 10px 0;
+           font-weight: bold;
+           font-size: 0.95rem;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           gap: 10px;
+           transition: all 0.2s ease;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-calculadora:active {
+           transform: scale(0.98);
+           background-color: #e1bee7;
+        }
+        /* Icono pequeño antes del texto */
+        .btn-calculadora::before {
+           content: "📊"; 
+           font-size: 1.1rem;
+        }
+        /* Estilo para el Tratamiento Alternativo (ITU) */
+        .alert-alternativo {
+           background-color: #e0f2f1; /* Verde/Cian muy claro */
+           border-left: 5px solid #00897b; /* Verde azulado */
+           padding: 10px;
+           margin-top: 10px;
+           border-radius: 4px;
+        }
+        .alternativo-header {
+           font-weight: bold;
+           color: #00695c;
+           display: block;
+           font-size: 0.85rem;
+           margin-bottom: 2px;
+        }
+        /* Forzar que la modal activa esté siempre al frente */
+        .modal.show {
+           z-index: 1060 !important;
+           display: block !important;
+        }
+        /* Forzar que el fondo oscuro esté justo debajo de la modal */
+        .modal-backdrop.show {
+           z-index: 1050 !important;
+        }
+        /* Asegurar que el cuerpo de la modal de Candida no sea transparente */
+        #modalCandida .modal-content {
+           background-color: white !important;
+           box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        #info-institucional {
+           overflow: visible; 
+           background-color: white;
+        }
+        .marco-foto {
+        /* Aquí es donde controlas la franja blanca */
+           padding: 30px; 
+           padding-bottom: 5px; 
+           display: block;
+        }
+        #info-institucional img {
+        /* Cambiamos width por max-width para que respete el padding del padre */
+           max-width: 100%;
+           height: auto;
+           display: block;
+           margin: 0 auto; /* Centra la foto si el marco es muy ancho */
+           border-radius: 8px;
+           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        #info-institucional .p-3 {
+           border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        #contacto-infecciosas a {
+           text-decoration: none;
+           transition: transform 0.2s ease;
+        }
+        #contacto-infecciosas a:hover {
+           transform: scale(1.02);
+           background-color: #fff;
+        }
+        .menu-btn{
+            display:inline-block;
+            cursor: pointer;
+            margin-top:12px;
+            text-decoration:none;
+            background:#e7e7e7;
+            color:#222;
+            padding:10px 14px;
+            border-radius:8px;
+            border: none;
+            font-weight:600;
+            font-size:0.95rem;
+            box-shadow:
+            0 4px 0 #9e9e9e,
+            0 6px 12px rgba(0,0,0,0.12);
+       }
+       .menu-btn:hover{
+           background:#d5d5d5;
+       }
+       .menu-btn:active {
+            transform:translateY(2px);
+            box-shadow:
+            0 2px 0 #9e9e9e,
+            0 3px 6px rgba(0,0,0,0.12);
+        }
+        .menu-bar {
+            display:flex;
+            justify-content:space-between;
+            margin-top:14px;
+       }
+        .note-footer {
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto; /* Para compatibilidad con algunos móviles antiguos */
+            font-size: 0.80rem;    /* Tamaño discreto */
+            color: #6b7280;        /* Gris suave (text-gray-500) */
+            line-height: 1.4;
+            margin-top: 25px;      /* Espacio respecto a la calculadora */
+            padding: 0 5px;        /* Un poco de aire en los bordes */
+        }
+        .footer-version {
+            display: block;        /* Hace que la versión y autor bajen a una línea nueva */
+            margin-top: 8px;
+            font-size: 0.8rem;
+            text-align: center;    /* El copyright suele quedar mejor centrado */
+            opacity: 0.8;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;           /* Cubre exactamente la ventana, sin pasarse */
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: none;      /* Se activa con .active o JS */
+            align-items: center;
+            justify-content: center;
+            padding: 15px;      /* Espacio de seguridad para que la caja no pegue al borde */
+        }
+        .modal-overlay.active {
+            display: flex !important;
+        }
+        .modal-box {
+            background: #fff;
+            max-width: 560px;
+            width: 100%;        /* Ocupará el máximo permitido por el padding del padre */
+            padding: 24px;
+            border-radius: 12px;
+            position: relative;
+            margin: auto;       /* EL GRAN TRUCO: centra en todas direcciones */
+            max-height: 90vh;
+            overflow-y: auto; 
+        }
+        #about-modal video{
+            width: 85%;
+            max-width: 280px;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto 12px auto;    
+        }
+        #about-modal .modal-box {
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .close-modal {
+        /* Posicionamiento en la esquina */
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        /* Tamaño del área táctil (círculo) */
+            width: 40px;
+            height: 40px;
+            -webkit-tap-highlight-color: transparent; /* Quita el recuadro azul feo al tocar en Android */
+            outline: none;
+        /* Centrado perfecto de la X dentro del círculo */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        /* Estilo del símbolo */
+            font-size: 30px;
+            font-family: Arial, sans-serif;
+            color: #666;
+            line-height: 0; /* Evita que la X se desplace hacia abajo */
+            cursor: pointer;
+        /* Preparación para la animación */
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+        /* EFECTO AL PASAR EL RATÓN (Hover) */
+        .close-modal:hover {
+            background-color: rgba(0, 0, 0, 0.08); /* Círculo gris suave */
+            color: #cc0404;                      /* X en color rojo */
+            transform: rotate(90deg);            /* La X gira un cuarto de vuelta */
+        }
+        /* EFECTO AL PULSAR (Active) */
+        .close-modal:active {
+            background-color: rgba(0, 0, 0, 0.15);
+            transform: rotate(90deg) scale(0.9); /* Se encoge un poquito al tocarlo */
+        }
+        .about-text, .text-justify {
+            text-align: justify;
+            hyphens: auto;      /* Divide las palabras largas con guiones si es necesario */
+            text-justify: inter-word; /* Mejora el reparto del espacio */
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-app text-center">
+    <h1 class="h6 mb-1 fw-bold">GUÍA DE ANTIBIOTERAPIA HUCSC 2025</h1>
+    <p class="small mb-0">Hosp. Univ. Clínico San Cecilio (Granada)</p>
+</div>
+
+<div class="container mt-3 pb-5">
+
+    <div class="accordion mb-3" id="accPrincipal">
+        
+        <div class="accordion-item card-main">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-success" type="button" data-bs-toggle="collapse" data-bs-target="#collRenal">
+                    ⚙️ Ajuste Renal (Cockcroft-Gault)
+                </button>
+            </h2>
+            <div id="collRenal" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="renal-calc">
+                        <div class="row g-2">
+                            <div class="col-4"><label class="small fw-bold">Edad</label><input type="number" id="r-edad" class="form-control"></div>
+                            <div class="col-4"><label class="small fw-bold">Peso</label><input type="number" id="r-peso" class="form-control"></div>
+                            <div class="col-4"><label class="small fw-bold">Creat.</label><input type="number" id="r-creat" class="form-control" step="0.1"></div>
+                            <div class="col-12 mt-2"><select id="r-sexo" class="form-select"><option value="1">Hombre</option><option value="0.85">Mujer</option></select></div>
+                            <div class="col-6 mt-2"><button class="btn btn-primary w-100 fw-bold" onclick="calcRenal()">Calcular</button></div>
+                            <div class="col-6 mt-2"><button class="btn btn-outline-danger w-100 fw-bold" onclick="limpiarRenal()">Borrar</button></div>
+                        </div>
+                        <div id="clcr-result" class="mt-3 p-2 text-center rounded bg-white border fw-bold h5 mb-0">ClCr: -- ml/min</div>
+                    </div>
+
+                    <div class="table-responsive-custom mt-3">
+                        <table class="renal-table">
+                            <thead>
+                                <tr>
+                                    <th>Fármaco</th>
+                                    <th>Dosis Ajustada</th>
+                                </tr>
+                            </thead>
+                            <tbody id="renal-body">
+                                <tr id="f-pip"><td>Pip/Tazo (Sepsis)</td><td id="row-pip">--</td></tr>
+                                <tr id="f-mero"><td>Meropenem (Shock)</td><td id="row-mero">--</td></tr>
+                                <tr id="f-cefepime"><td>Cefepime</td><td id="row-cefepime">--</td></tr>
+                                <tr id="f-levo"><td>Levofloxacino</td><td id="row-levo">--</td></tr>
+                                <tr id="f-dapto"><td>Daptomicina</td><td id="row-dapto">--</td></tr>
+                                <tr id="f-erta"><td>Ertapenem</td><td id="row-erta">--</td></tr>
+                                <tr id="f-amikacina"><td>Amikacina</td><td id="row-amikacina">--</td></tr>
+                                <tr id="f-fluco"><td>Fluconazol</td><td id="row-fluco">--</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0, text-justify">* Nota: Dosis de carga siempre plena independientemente de función renal.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item card-main">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collAlergia">
+                    🛡️ Evaluación Alergia (PEN-FAST)
+                </button>
+            </h2>
+            <div id="collAlergia" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="fast-row" style="background-color: #eef7ff; border-color: var(--azul-husc);">
+                        <div class="fast-letter">PEN</div>
+                        <div class="fast-text"><b>¿Alergia a penicilina reportada por el paciente?</b></div>
+                        <input type="checkbox" class="form-check-input fast-check" id="pen-check" onclick="toggleFast()">
+                    </div>
+
+                    <div id="fast-logic" class="fast-container">
+                        <div class="fast-row"><div class="fast-letter">F</div><div class="fast-text"><b>Five years:</b> La reacción se produjo hace ≤ 5 años (2 pts)</div><input type="checkbox" class="form-check-input fast-check pf-calc" id="pf-f" onclick="calcFast()"></div>
+                        <div class="fast-row"><div class="fast-letter">A</div><div class="fast-text"><b>Anaphylaxis:</b> Anafilaxia o Angioedema (2 pts)</div><input type="checkbox" class="form-check-input fast-check pf-calc" id="pf-a" onclick="calcFast()"></div>
+                        <div class="fast-row"><div class="fast-letter">S</div><div class="fast-text"><b>Severe:</b> Reacción adversa cutánea grave (2 pts)</div><input type="checkbox" class="form-check-input fast-check pf-calc" id="pf-s" onclick="calcFast()"></div>
+                        <div class="fast-row"><div class="fast-letter">T</div><div class="fast-text"><b>Treatment:</b> Requirió tratamiento médico (1 pt)</div><input type="checkbox" class="form-check-input fast-check pf-calc" id="pf-t" onclick="calcFast()"></div>
+
+                        <div id="score-panel"></div>
+                        
+                        <div class="text-center mt-2">
+                            <button class="btn btn-semaforo" onclick="showSemaforo()">
+                                <img src="icono-semaforo.png" alt="🚦" width="25"> El semáforo de la alergia a Betalactámicos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item card-main">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
+                    <span class="me-1">⚠️</span>
+                    <span style="flex: 1;">Criterios riesgo multirre&shy;sistentes (MDR)</span>
+                </button>
+            </h2>
+            <div id="collMDR" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="mdr-title text-danger text-justify">Estafilococo aureus meticilín resistente (SAMR)</div>
+                    <ul class="list-mdr">
+                        <li>Antecedentes de colonización previa por SAMR</li>
+                        <li>Antibióticos en los 3 meses previos (Quinolonas / Cefalosporinas)</li>
+                        <li>Hospitalización en los 3 meses previos</li>
+                        <li>Residencia o cuidados sanitarios</li>
+                        <li>Enfermedades o tratamientos inmunosupresores</li>
+                        <li>Enfermedad renal crónica en hemodiálisis</li>
+                        <li>Presencia de dispositivos intravasculares</li>
+                    </ul>
+
+                    <div class="mdr-title text-success text-justify">Enterobacterias productoras de betalactamasas de espectro ampliado (BLEE)</div>
+                    <ul class="list-mdr">
+                        <li>Inmunodepresión</li>
+                        <li>Hospitalización en los 3 meses previos</li>
+                        <li>Residencia o cuidados sanitarios</li>
+                        <li>Sondaje vesical permanente o gastrostomía</li>
+                        <li>Antibióticos en los 3 meses previos (Quinolonas / Cefalosporinas)</li>
+                        <li>Comorbilidades: insuficiencia renal crónica, diabetes mellitus, insuficiencia respiratoria crónica, cáncer</li>
+                        <li>Ancianidad</li>
+                        <li>Colonización actual o elaño anterior por BLEE</li>
+                    </ul>
+                    
+                    <div class="mdr-title text-primary text-justify">Pseudomonas y otros bacilos gram - multirresistentes</div>
+                    <ul class="list-mdr">
+                        <li>Uso previo y repetido de antibióticos</li>
+                        <li>Colonización en los últimos 12 meses</li>
+                        <li>Inmunosupresión grave (neutropenia, quimioterapia, trasplante, infección VIH avanzada, corticoides crónicos)</li>
+                        <li>Ancianidad extrema (>85 años)</li>
+                        <li>Sondaje vesical permanente</li>
+                        <li>Uso de esteroides prolongado</li>
+                    </ul>
+                        
+                    <div class="btn-calculadora" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalCandida"
+                        onclick="vieneDeTratamiento = false;" 
+                        style="cursor: pointer;">
+                        Calculadora Candida Score
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-main p-3">
+        <label class="fw-bold text-secondary mb-2">SISTEMA AFECTADO:</label>
+        <select class="form-select form-select-lg mb-3 shadow-sm" id="sel-sis" onchange="updateSub()">
+            <option value="" selected disabled>-- Seleccionar --</option>
+            <option value="SEPSIS">Sepsis y Shock séptico (empírico)</option>
+            <option value="SNC">Sistema Nervioso Central</option>
+            <option value="RESP">Aparato Respiratorio</option>
+            <option value="URIN">Tracto Urinario</option>
+            <option value="ABD">Intraabdominales</option>
+            <option value="ART">Articulares no protésicas</option>
+            <option value="PIEL">Piel y Partes blandas (PPB)</option>
+            <option value="PIE">Pie diabético</option>
+            <option value="ITS">Transmisión Sexual (ITS)</option>
+        </select>
+        <div id="sub-box" style="display:none;">
+            <label class="fw-bold text-success mb-2">PATOLOGÍA ESPECÍFICA:</label>
+            <select class="form-select form-select-lg shadow-sm" id="sel-inf" onchange="openRec()"></select>
+        </div>
+    </div>
+
+    <div id="info-institucional" class="card card-main border-0 shadow-sm mb-3">
+        <div class="marco-foto">
+            <img src="Hospital.jpg" alt="Hospital Universitario Clínico San Cecilio">
+        </div>
+        <div class="p-3 text-center">
+            <div class="fw-bold" style="font-size: 1rem; color: #006837;">
+                Comisión de Infecciones Hospitalarias
+            </div>
+            <div class="text-muted mt-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                GRUPO PROA • CÓDIGO SEPSIS
+            </div>
+        </div>
+     </div>
+     <div id="contacto-infecciosas" class="card card-main border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #e1e2e3 0%, #e9ecef 100%);">
+         <div class="card-body p-3 text-center">
+             <div class="d-flex align-items-center justify-content-center mb-2">
+                 <span style="font-size: 1.5rem; margin-right: 10px;">📞</span>
+                 <span class="fw-bold text-secondary">CONSULTA A INFECCIOSAS:</span>
+             </div>
+        
+             <a href="tel:745146" class="btn btn-light border shadow-sm w-100 py-2 mb-3" style="border-radius: 10px;">
+                 <span style="font-size: 2rem; font-weight: 800; color: #dc3545; letter-spacing: 2px;">
+                     745146
+                 </span>
+             </a>
+             <a href="tel:670945146" class="btn btn-light border shadow-sm w-100 py-2" style="border-radius: 10px;">
+                 <span style="font-size: 2rem; font-weight: 800; color: #dc3545; letter-spacing: 2px;">
+                     670945146
+                 </span>
+             </a>
+        
+             <p class="text-muted mt-2 mb-0">
+                 <i>En caso de duda o necesidad.</i>
+             </p>
+         </div>
+     </div>
+      <!-- ============ BUTTON ROW 2 (Acerca de + Reiniciar) ============ -->
+            <div class="menu-bar">
+                <button type="button" class="menu-btn" onclick="window.location.href='index.html'">
+                    ← Reiniciar
+                </button>
+                <button type="button" id="about-btn" class="menu-btn">
+                    Acerca de…
+                </button>
+            </div>
+     <!-- ============ FOOTER NOTE ============ -->
+     <div class="note-footer">
+         <em>
+             Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
+             No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
+             <span class="footer-version">
+                    Versión 1.0.1. © Paco Casado. Granada 2026.
+            </span>
+        </em>
+     </div>
+</div>
+<!-- ============ MODAL ACERCA DE ============ -->
+    <div id="about-modal" class="modal-overlay">
+        <div class="modal-box">
+            <span id="close-about" class="close-modal" title="Cerrar">&times;</span>
+            <video id="about-video" autoplay muted playsinline preload="auto" class="w-full">
+            <source src="DoctorCalc.mp4" type="video/mp4">
+            </video>
+
+            <div style="margin-top:16px; font-size:0.95rem; color:#222;">
+                <h3>Acerca de ABCalc:</h3>
+                <div class="about-text">
+                    ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
+                    elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
+                    <span class="footer-version">
+                        Versión 1.0.1. © Paco Casado. Granada 2026.
+                    </span> 
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="modal fade" id="modalRec" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold" id="m-title"></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body fs-5" id="m-body"></div>
+    </div></div>
+</div>
+
+<div class="modal fade" id="modalSem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Semáforo de la Alergia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="overflow: hidden; position: relative;">
+                <div id="wrapper-semaforo" style="overflow: auto; max-height: 75vh; text-align: center;">
+                    <img src="semaforo.png" id="img-semaforo" class="img-fluid" 
+                         style="cursor: zoom-in; transition: transform 0.3s ease;" 
+                         onclick="toggleZoom(this)">
+                </div>
+                <div class="bg-light py-2 text-center border-top">
+                    <small class="text-muted fw-bold">👆 Pulse en la imagen para ampliar</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalAlgoritmo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h5 class="modal-title fw-bold">Algoritmo SNC - HUCSC</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="alg-body">
+                </div>
+            <div class="modal-footer border-0 d-flex justify-content-between" id="alg-footer">
+                </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalCurb" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold">Calculadora CURB-65</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="curb-total-display" class="curb-score-header">
+                    PUNTUACIÓN ACTUAL: 0
+                </div>
+                
+                <div class="curb-container">
+                    <div class="curb-row">
+                        <span class="curb-label"><b>C</b>onfusión (nueva)</span>
+                        <input type="checkbox" id="c-c" class="curb-check" onclick="actualizarCurbEnVivo()">
+                    </div>
+                    <div class="curb-row">
+                        <span class="curb-label"><b>U</b>rea > 19 mg/dL</span>
+                        <input type="checkbox" id="c-u" class="curb-check" onclick="actualizarCurbEnVivo()">
+                    </div>
+                    <div class="curb-row">
+                        <span class="curb-label"><b>R</b>esp. ≥ 30 rpm</span>
+                        <input type="checkbox" id="c-r" class="curb-check" onclick="actualizarCurbEnVivo()">
+                    </div>
+                    <div class="curb-row">
+                        <span class="curb-label"><b>B</b>P (TAS < 90 / TAD ≤ 60)</span>
+                        <input type="checkbox" id="c-b" class="curb-check" onclick="actualizarCurbEnVivo()">
+                    </div>
+                    <div class="curb-row">
+                        <span class="curb-label">Edad <b>≥ 65</b> años</span>
+                        <input type="checkbox" id="c-65" class="curb-check" onclick="actualizarCurbEnVivo()">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-primary btn-lg w-100 fw-bold" data-bs-dismiss="modal">GUARDAR Y CERRAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalDecisionSNC" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h5 class="modal-title fw-bold"id="modalDecisionTitulo">Valoración</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center" id="dec-body">
+                </div>
+            <div class="modal-footer border-0" id="dec-footer">
+                </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalITS" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Protocolo ITS / Riesgo Biológico</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div id="bodyITS" class="modal-body">
+                </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modalCandida" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">Candida Score</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="candida-total-display" class="text-center fw-bold mb-3" style="font-size: 1.2rem; color: #d63384;">
+                    PUNTUACIÓN: 0
+                </div>
+
+                <div class="score-container">
+                    <div class="score-row" onclick="document.getElementById('can-cir').click()">
+                        <span class="label-score">Cirugía postoperatoria</span>
+                        <input type="checkbox" id="can-cir" class="check-grande" onclick="event.stopPropagation(); calcCandida()">
+                    </div>
+
+                    <div class="score-row" onclick="document.getElementById('can-ntp').click()">
+                        <span class="label-score">Nutrición Parenteral Total</span>
+                        <input type="checkbox" id="can-ntp" class="check-grande" onclick="event.stopPropagation(); calcCandida()">
+                    </div>
+
+                    <div class="score-row" onclick="document.getElementById('can-col').click()">
+                        <span class="label-score">Colonización multifocal</span>
+                        <input type="checkbox" id="can-col" class="check-grande" onclick="event.stopPropagation(); calcCandida()">
+                    </div>
+
+                    <div class="score-row" style="border-left: 5px solid #dc3545;" onclick="document.getElementById('can-sep').click()">
+                        <span class="label-score">Sepsis Grave (2 puntos)</span>
+                        <input type="checkbox" id="can-sep" class="check-grande" onclick="event.stopPropagation(); calcCandida()">
+                    </div>
+                </div>
+                
+                <p class="text-muted mt-3 text-center">
+                    Score ≥ 3: Iniciar tratamiento antifúngico empírico.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary w-100" onclick="cerrarCalculadoraYVolver()">CERRAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+    let puntuacionCurbGlobal = null;
+    const guiaData = {
+        "SEPSIS": {
+            "Sepsis sin foco": {
+                p: "En la primera hora desde la activación del código. <b>Piperacilina/tazobactam</b> 4g/500mg/6h (dosis de carga y posteriormente perfusión extendida 3-4 horas) + <b>Daptomicina</b> 10mg/kg/24h",
+                a: "Levofloxacino 500mg/12h + Gentamicina 5mg/kg/24h",
+            },   
+            "Shock Séptico": {
+                p: "En la primera hora desde la activación del código. <b>Meropenem</b> 2g iv/8h (dosis de carga 1g y posteriormente 2g en perfusión extendida de 3 horas/8h) + <b>Daptomicina</b> 10mg/kg/24h",
+                a: "Aztreonam 2g iv/8h + Amikacina 20mg/kg/24h (peso ajustado) + Daptomicina 10mg/kg/24h",
+            },          
+        },
+        "SNC": {
+            "ALGORITMO DE ACTUACIÓN": { p: "VER ALGORITMO INTERACTIVO", a: "VER ALGORITMO INTERACTIVO", especial: "SNC_ALG" },
+            "Meningitis (< 50 años)": {
+                p: "<b>Ceftriaxona</b> 2g/12h iv + Dexametasona",
+                a: "Linezolid 600 mg/8h iv + Aztreonam 2g/6h iv",
+            },
+            "Meningitis (≥ 50 años y/o comorbilidad)": {
+                p: "<b>Ceftriaxona</b> 2g/12h iv + <b>Ampicilina</b> 2g/4h iv + Dexametasona",
+                a: "Linezolid 600 mg/8h iv + Aztreonam 2g/6h iv",
+            },
+            "Encefalitis (empírico)": {
+                p: "<b>Aciclovir</b> 10mg/kg/8h iv",
+                esViral: true 
+            },
+        },
+        "RESP": { 
+            "ESCALA CURB-65": { especial: "CURB_MODAL" },
+            "Neumonía AC leve CURB-65 1": {
+                p: "<b>Amoxicilina</b> 1g/8h vo ± <b>Azitromicina</b> 500 mg/24h vo de 3 a 5 días",
+                a: "Moxifloxacino 400 mg/24h vo de 3 a 5 días",
+            },
+            "Neumonía AC moderada CURB-65 2": {
+                p: "<b>Ceftriaxona</b> 2g/24h iv + <b>Azitromicina</b> 500mg/24h durante 3 días",
+                a: "Levofloxacino 500 mg/12h durante 5 a 7 días",
+            },    
+            "Neumonía AC grave CURB-65 ≥ 3": { especial: "S_GRAVE" }, // Opción especial          
+            "EPOC exacerbado moderado": {
+                p: "<b>Amoxicilina/Clavulánico</b> 875/125 mg/8h vo de 5 a 7 días",
+                a: "Levofloxacino 500 mg/24h vo o Moxifloxacino 400 mg/24h vo de 5 a 7 días",
+            },
+            "EPOC exacerbado grave": { especial: "S_EPOC_G" }, // Opción especial
+        },    
+        "URIN": {
+            "Cistitis o ITU no complicada": {
+                p: "<b>Fosfomicina Trometamol</b> 3g (dosis única), puede repetirse 2ª dosis en 48h. <b>Nitrofurantoina</b> 100 mg/8h durante 5 días",
+                a: "Cefixima 400mg/12h po 5 días",
+                esViral: false
+            },
+            "Cistitis o ITU complicada": {
+                p: "<b>Fosfomicina Trometamol</b> 3g dos tomas separadas 48 h",
+                a: "Tratamiento de cistitis no complicada 7 días",
+                esViral: false
+            },
+            "Prostatitis (pedir ITS si procede)": {
+                p: "<b>Ceftriaxona</b> 2g/24h iv. Al alta, <b>ciprofloxacino</b> 750/12h de 14 a 21 días",
+                a: "Cotrimoxazol (160/800mg) po: 1/12h de 14 a 21 días",
+                esViral: false
+            },
+            "Orquiepididimitis (pedir ITS)": {
+                p: "<b>Ceftriaxona</b> 2g iv. Al alta, <b>ciprofloxacino</b> 750/12h po",
+                a: "Ciprofloxacino 400mg/12h iv",
+                esViral: false
+            },
+            "Pielonefritis": { especial: "ITU_PIELO" }, // Clave especial
+            "Pielonefritis con criterios de Shock séptico": {
+                p: "<b>Imipenem</b> 1g/8h IV + <b>amikacina</b> 20mg/kg/24h (peso ajustado)",
+                a: "Aztreonam 2g/8h IV + amikacina 20mg/kg/24h IV (Si riesgo de enterococo + linezolid 600mg/12hIV)",
+                esViral: false
+            },
+        },
+        "ABD": {
+            "Perforación alta (hasta duodeno)": {
+                p: "<b>Piperazilina/tazobactam</b> 4g/500mg/6h IV + <b>Fluconazol</b> 400mg/12h IV",
+                a: "Levofloxacino 500mg/12h + Fluconazol 400mg/12h IV",
+            },    
+            "Peritonitis secundaria (perforación distal a duodeno)": {
+                p: "<b>Piperazilina/tazobactam</b> 4g/500mg/6h IV.<br>Interconsulta urgente a <b>Cirugía general</b>.<br>Prioridad control de foco",
+                a: "Tigeciclina 100 mg IV seguido de 50mg/12h IV + ciprofloxacino 400mg/8h IV",    
+            },
+            "Peritonitis terciaria": { especial: "PERITONITIS_T" },
+            "Colecistitis/Colangitis": {
+                p: "<b>Ceftriaxona</b> 2g/12h IV hasta cirugía/drenaje (luego 2g/24h IV).<br><i>Si riesgo BLEE:</i> <b>Ertapenem</b> 1g/24h IV.<br><i>Si nosocomial (manipulación reciente de las VVBB), enfisematosa o grangrenosa:</i> <b>Piperazilina/tazobactam</b> 4g/500mg/6h IV.<br><i>Sepsis grave:</i> <b>Imipenem</b> 500mg/6h IV",
+                a: "Levofloxacino 500mg/12h.<br>Si gravedad o factores de complejidad: Tigeciclina 100mg IV seguido de 50mg/12h IV + ciprofloxacino 400mg/8h IV",
+            },
+            "PBE": {
+                p: "<b>Cefotaxima</b> 2g/6h IV.<br> <i>Si riesgo BLEE:</i> <b>Ertapenem</b> 1g/24h IV. <i>Duración:</i> 5 días",
+                a: "Levofloxacino 500mg/12h"
+            },
+            "Apendicitis": {
+                p: "<i>No complicada:</i> <b>Amoxicilina/clavulánico</b> 1g/8h IV (oral, si alta, 875/125/8h).<br><i>Abscesificada, perforada, gangrenosa:</i> <b>Ceftriaxona</b> 2g/24h IV + <b>metronidazol</b> 500mg/8h IV",
+                a: "Ciprofloxacino 400mg/12 + metronidazol 500mg/8h IV",
+            },
+            "Diverticulitis": {
+                p: "<i>Grado 0-IIa:</i> <b>Amoxicilina/clavulánico</b> 1g/125mg/8h IV. Al alta, <b>amoxicilina/calvulánico</b> 875mg/125mg/8h vía oral.<br><i>Grado ≥IIb:</i> <b>Ceftriaxona</b> 2g/24h IV + <b>metronidazol</b> 500mg/8h IV.<br><i>Si episodio previo reciente o riesgo de BLEE:</i> <b>Ertapenem</b> 1g/24h IV o <b>piperazilina/tazobactam</b> 4g/500mg/6h IV",
+                a: "Ciprofloxacino 400mg/8-12h + metronidazol 500mg/8h IV",
+            },
+            "Absceso hepático primario (no secundario a complicación abdominal)": {
+                p: "<b>PRIORIZAR DRENAJE (INTERCONSULTA A RX INTERVENCIONISTA)</b><br><br><b>Ceftriaxona</b> 2g/12h + <b>metronidazol</b> 500mg/8h IV<br><i>Si riesgo BLEE:</i> <b>Ertapenem</b> 1g/12h IV hasta drenaje (luego, 1g/24h)",
+                a: "Ciprofloxacino 400mg/8h + metronidazol 500mg/8h IV",
+            },
+            "Enteritis aguda": {
+                p: "<i>Sin productos patológicos (toxinas, virus, bacterias):</i> <b>No indicado</b><br><i>Con productos patológicos (realizar coprocultivo y, si procede, parásitos en heces):</i><br>1-<b>Azitromicina</b> 500mg/24h 3 días o<br>2-<b>Cirpofloxacino</b> 500mg/12h de 3 a 5 días",
+                a:  "",
+                esViral: false
+            },          
+        },
+        "ART": {
+            "Artritis aguda": {
+                p: "<b>Cloxacilina</b> 2g/4h IV + <b>ceftriaxona</b> 2g/24h IV<br><i>Si riesgo de SAMR:</i><br><b>Ceftriaxona</b> 2g/24h IV + <b>linezolid</b> 600mg/12h IV (alternativo Vancomicina 15-20mg/kg/8-12h)",
+                a: "Levofloxacino 500mg/12h IV + linezolid 600mg/12h IV (alternativo Vancomicina 15-20mg/kg/8-12h)",
+            },
+            "Bursitis aguda": {
+                p: "Cloxacilina 2g/4-6h IV",
+                a: "Linezolid 600mg/12h IV (alternativo Vancomicina 15-20mg/kg/8-12h)",
+            },   
+        },     
+        "PIEL": {
+            "IPPB con alta a domicilio": {
+                p: "<b>Amoxicilina/clavulánico</b> 875mg/125mg/8h vía oral",
+                a: "Moxifloxacino 400mg/24h vía oral",
+            },
+            "IPPB moderada/grave con ingreso hospitalario": {
+                p: "<b>Ceftriaxona</b> 2g/24h + <b>clindamicina</b> 600mg/8h IV<br><i>Si riesgo de SAMR:</i><br><b>Ceftriaxona</b> 2g/24h + <b>linezolid</b> 600mg/12h IV u oral",
+                a: "Levofloxacino 500mg/12h IV u oral + linezolid 600mg/12h IV u oral<br>Si contraindicado linezolid (toma de ISRS) clindamicina 600mg/8h",
+            },    
+            "Fascitis necrotizante ± Gangrena de Fournier": {
+                p: "<b>Meropenem</b> 2g/8h + <b>Linezolid</b> 600/12h IV",
+                a: "Levofloxacino 500mg/12h IV + tigeciclina 100mg (dosis de carga) e, inmediatamente posterior, 50mg/12h + metronidazol 500mg/8h IV",
+            },
+            "Mastitis infecciosa": {
+                p: "<b>Cefadroxilo</b> 1g/8h<br>Si compleja o abscesificada, tras drenaje y toma de muestras añadir <b>clindamicina</b> 600mg/8h",
+                a: "Clindamicina 600mg/8h",
+            },
+        },
+        "PIE": {
+            "Pie diabético leve": {
+                p: "<b>Amoxicilina/clavulánico</b> 875mg/125mg/8h vía oral de 7 a 14 días.<br><i>Si criterios SAMR:</i> <b>linezolid</b> 600mg/12h vía oral",
+                a: "Levofloxacino 500mg/12h vía oral + clindamicina 600mg/8h de 7 a 14 días",
+            },
+            "Pie diabético moderado/grave": {
+                p: "<b>Piperacilina/tazobactam</b> 4g/500mg/6h<br><i>Si riesgo de BLEE:</i> <b>meropenem</b> 2g/8h IV + <b>linezolid</b> 600mg/12h vía oral o IV<br><i>Si contraindicado linezolid (toma de ISRS)</i>: <b>clindamicina</b> 600 mg/8h",
+                a: "Ciprofloxacino 400mg/8h IV + linezolid 600mg/12h vía oral o IV<br><i>Si contraindicado linezolid (toma de ISRS)</i>: clindamicina 600 mg/8h>",
+            },    
+        },   
+        "ITS": {
+            "Protocolo Manejo ITS": { especial: "ITS_ALG" },
+            "Empírico": { 
+                p: "<b>Ceftriaxona</b> 1g im + <b>Doxiciclina</b> 100/12h (durante 7 días)",
+                a: "Gentamicina 5mg/kg dosis única + azitromicina 2g dosis única",
+            },
+            "Gonococo": {
+                p: "<b>Ceftriaxona</b> 1g im (dosis única)",
+                a: "Gentamicina 5mg/kg dosis única + azitromicina 2g dosis única",
+            },    
+            "Chlamydia": {
+                p: "<b>Doxiciclina</b> 100mg/12h (7 días)<br>Indicado siempre si anal",
+                a: "Azitromicina 1g dosis única",
+            },
+            "Treponema Palidum": {
+                p: "<i>Aguda:</i> <b>Penicilina G benzatina</b> 2,4 millones im (dosis única).<br>RPR negativo: = cada 7 días (3 dosis)",
+                a: "Hacer interconsulta a alergología/infecciosas",
+            },
+            "Mycoplasmoides genitalum": {
+                p: "<b style='color: red;'>TRATAR SOLO SI SÍNTOMAS</b><br><b>Doxiciclina</b> 100mg/12h durante 7 días + <b>azitromicina</b> 1g el primer día y 500mg los días 2 a 4",
+                a: "Doxiciclina 100mg/12h durante 7 días + moxifloxacino 400mg/24h durante 7 días",
+            },
+        },    
+        };
+
+    function calcRenal() {
+        const edad = parseFloat(document.getElementById('r-edad').value);
+        const peso = parseFloat(document.getElementById('r-peso').value);
+        const creat = parseFloat(document.getElementById('r-creat').value);
+        const sexo = parseFloat(document.getElementById('r-sexo').value);
+
+        if (edad && peso && creat) {
+            const clcr = Math.round(((140 - edad) * peso / (72 * creat)) * sexo);
+            document.getElementById('clcr-result').innerText = `ClCr: ${clcr} ml/min`;
+
+            // 1. PIPERACILINA/TAZOBACTAM (Normal > 40)
+            const rPip = document.getElementById('row-pip');
+            const fPip = document.getElementById('f-pip');
+            if (clcr > 40) {
+                rPip.innerText = "4g/6h (Normal)";
+                fPip.classList.remove('risk-active');
+            } else {
+                rPip.innerText = clcr > 20 ? "4g/8h" : "4g/12h";
+                fPip.classList.add('risk-active');
+            }
+
+            // 2. MEROPENEM (Normal > 50)
+            const rMero = document.getElementById('row-mero');
+            const fMero = document.getElementById('f-mero');
+            if (clcr > 50) {
+                rMero.innerText = "2g/8h (Normal)";
+                fMero.classList.remove('risk-active');
+            } else {
+                rMero.innerText = clcr > 25 ? "2g/12h" : (clcr > 10 ? "1g/12h" : "1g/24h");
+                fMero.classList.add('risk-active');
+            }
+
+            // 3. LEVOFLOXACINO (Normal > 50)
+            const rLevo = document.getElementById('row-levo');
+            const fLevo = document.getElementById('f-levo');
+            if (clcr > 50) {
+                rLevo.innerText = "500mg/12h (Normal)";
+                fLevo.classList.remove('risk-active');
+            } else {
+                rLevo.innerText = clcr > 20 ? "500 Carga -> 250/12h" : "500 Carga -> 250/24h";
+                fLevo.classList.add('risk-active');
+            }
+
+            // 4. DAPTOMICINA (Normal > 30)
+            const rDapto = document.getElementById('row-dapto');
+            const fDapto = document.getElementById('f-dapto');
+            if (clcr > 30) {
+                rDapto.innerText = "10mg/kg/24h (Normal)";
+                fDapto.classList.remove('risk-active');
+            } else {
+                rDapto.innerText = "10mg/kg/48h";
+                fDapto.classList.add('risk-active');
+            }
+
+            // 5. ERTAPENEM (Normal > 30)
+            const rErta = document.getElementById('row-erta');
+            const fErta = document.getElementById('f-erta');
+            if (clcr > 30) {
+                rErta.innerText = "1g/24h (Normal)";
+                fErta.classList.remove('risk-active');
+            } else {
+                rErta.innerText = "500mg/24h";
+                fErta.classList.add('risk-active');
+            }
+            
+            // 6. CEFEPIME (Punto de corte > 50) - ¡Crítico neurotoxicidad!
+            const rCefe = document.getElementById('row-cefepime');
+            const fCefe = document.getElementById('f-cefepime');
+            if (clcr > 50) {
+                rCefe.innerText = "2g/8h o 2g/12h (Normal)";
+                fCefe.classList.remove('risk-active');
+            } else {
+                if (clcr > 30) rCefe.innerText = "2g/12h";
+                else if (clcr > 11) rCefe.innerText = "1g/12h";
+                else rCefe.innerText = "1g/24h (Riesgo Convulsión)";
+                fCefe.classList.add('risk-active');
+            }
+            
+            // 7. AMIKACINA (Basado en dosis única diaria)
+            const rAmika = document.getElementById('row-amikacina');
+            const fAmika = document.getElementById('f-amikacina');
+            if (clcr > 50) {
+                rAmika.innerText = "15-20mg/kg/24h (Normal)";
+                fAmika.classList.remove('risk-active');
+            } else {
+                rAmika.innerText = clcr > 30 ? "15mg/kg/36h" : "15mg/kg/48h (Monitorizar)";
+                fAmika.classList.add('risk-active');
+            }
+
+            // 8. FLUCONAZOL (Normal > 50)
+            const rFluco = document.getElementById('row-fluco');
+            const fFluco = document.getElementById('f-fluco');
+            if (clcr > 50) {
+                rFluco.innerText = "100% dosis (Normal)";
+                fFluco.classList.remove('risk-active');
+            } else {
+                rFluco.innerText = "Carga 100% -> 50% dosis habitual";
+                fFluco.classList.add('risk-active');
+            }
+        }
+    }
+
+    // No olvides actualizar la función limpiar para quitar el resaltado también
+    function limpiarRenal() {
+        ['r-edad','r-peso','r-creat'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('clcr-result').innerText = 'ClCr: -- ml/min';
+    
+        // Resetear textos y quitar clases risk-active
+        const filas = ['f-pip', 'f-mero', 'f-levo', 'f-dapto', 'f-erta', 'f-cefepime', 'f-amikacina', 'f-fluco'];
+        filas.forEach(id => {
+            const fila = document.getElementById(id);
+            fila.classList.remove('risk-active');
+            fila.cells[1].innerText = "--";
+        });
+    }
+
+    function toggleFast() {
+        const isChecked = document.getElementById('pen-check').checked;
+        const logicDiv = document.getElementById('fast-logic');
+        const scorePanel = document.getElementById('score-panel');
+    
+        if (isChecked) {
+            logicDiv.style.display = 'flex';
+            scorePanel.style.display = 'block';
+            calcFast(); // Fuerza el cálculo de "0 puntos" al activar PEN
+        } else {
+            logicDiv.style.display = 'none';
+            scorePanel.style.display = 'none';
+            // Resetear checks internos al desactivar
+            document.querySelectorAll('.pf-calc').forEach(c => c.checked = false);
+        }
+    }
+
+function calcFast() {
+    let pts = 0;
+    const f = document.getElementById('pf-f').checked;
+    const as = document.getElementById('pf-a').checked || document.getElementById('pf-s').checked;
+    const t = document.getElementById('pf-t').checked;
+
+    if (f) pts += 2;
+    if (as) pts += 2;
+    if (t) pts += 1;
+
+    const panel = document.getElementById('score-panel');
+    
+    // Aplicación de tus umbrales específicos
+    if (pts === 0) {
+        panel.className = "risk-0"; 
+        panel.style.backgroundColor = "#198754";
+        panel.innerText = "0 Puntos - Muy Bajo Riesgo (< 1%)";
+    } else if (pts <= 2) {
+        panel.className = "risk-1-2";
+        panel.style.backgroundColor = "#ffc107";
+        panel.style.color = "#000";
+        panel.innerText = pts + " Puntos - Bajo Riesgo (5%)";
+    } else if (pts === 3) {
+        panel.className = "risk-3";
+        panel.style.backgroundColor = "#fd7e14";
+        panel.style.color = "#fff";
+        panel.innerText = "3 Puntos - Riesgo Moderado (20%)";
+    } else {
+        panel.className = "risk-4-5";
+        panel.style.backgroundColor = "#dc3545";
+        panel.style.color = "#fff";
+        panel.innerText = pts + " Puntos - Alto Riesgo (50%)";
+    }
+}
+
+    function calcCandida() {
+        let pts = 0;
+        if (document.getElementById('can-cir').checked) pts += 1;
+        if (document.getElementById('can-ntp').checked) pts += 1;
+        if (document.getElementById('can-col').checked) pts += 1;
+        if (document.getElementById('can-sep').checked) pts += 2; // Pesa doble
+    
+        const display = document.getElementById('candida-total-display');
+        display.innerText = `PUNTUACIÓN: ${pts}`;
+    
+        // Alerta visual según el punto de corte (3)
+        if (pts >= 3) {
+            display.style.color = "#dc3545"; // Rojo: Alto riesgo
+            display.innerHTML = `PUNTUACIÓN: ${pts} (ALTO RIESGO)`;
+        } else {
+            display.style.color = "#198754"; // Verde: Bajo riesgo
+            display.innerHTML = `PUNTUACIÓN: ${pts}`;
+        }
+    }
+    // Añade esto para limpiar la calculadora al cerrar
+    document.getElementById('modalCandida').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('can-cir').checked = false;
+        document.getElementById('can-ntp').checked = false;
+        document.getElementById('can-col').checked = false;
+        document.getElementById('can-sep').checked = false;
+        const display = document.getElementById('candida-total-display');
+        display.innerText = "PUNTUACIÓN: 0";
+        display.style.color = "#d63384";
+    });
+
+    function updateSub() {
+        const s = document.getElementById('sel-sis').value;
+        const sub = document.getElementById('sel-inf');
+        sub.innerHTML = '<option value="" selected disabled>-- Seleccionar --</option>';
+        for (let inf in guiaData[s]) { let o = document.createElement('option'); o.value = inf; o.text = inf; sub.appendChild(o); }
+        document.getElementById('sub-box').style.display = 'block';
+    }
+
+    function actualizarCurbEnVivo() {
+        let pts = 0;
+        if (document.getElementById('c-c').checked) pts++;
+        if (document.getElementById('c-u').checked) pts++;
+        if (document.getElementById('c-r').checked) pts++;
+        if (document.getElementById('c-b').checked) pts++;
+        if (document.getElementById('c-65').checked) pts++;
+    
+        puntuacionCurbGlobal = pts;
+        const display = document.getElementById('curb-total-display');
+        display.innerText = `PUNTUACIÓN ACTUAL: ${pts}`;
+    
+        // Cambia el color del texto según gravedad
+        if (pts >= 3) display.style.color = "#dc3545"; // Rojo
+        else if (pts === 2) display.style.color = "#fd7e14"; // Naranja
+        else display.style.color = "#198754"; // Verde
+    }
+    
+    function openRec() {
+        const s = document.getElementById('sel-sis').value;
+        const selectorPatologia = document.getElementById('sel-inf'); 
+        const i = selectorPatologia.value; 
+    
+    // 1. Validación de seguridad
+    if (!s || !i || !guiaData[s] || !guiaData[s][i]) return;
+
+    const datos = guiaData[s][i];
+    const nombrePatologia = i.toLowerCase();
+
+    // --- BLOQUE DE CASOS ESPECIALES (Interrumpen el flujo normal) ---
+    
+    if (datos.especial === "SNC_ALG") {
+        mostrarPasoAlgoritmo(1);
+        new bootstrap.Modal(document.getElementById('modalAlgoritmo')).show();
+        resetearSelector(selectorPatologia);
+        return; 
+    }
+
+    if (datos.especial === "CURB_MODAL") {
+        new bootstrap.Modal(document.getElementById('modalCurb')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+
+    if (datos.especial === "S_GRAVE") {
+        document.getElementById('modalDecisionTitulo').innerText = "Valoración Neumonía Grave";
+        preguntarSAMR();
+        new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+
+    if (datos.especial === "S_EPOC_G") {
+        document.getElementById('modalDecisionTitulo').innerText = "Valoración EPOC Grave";
+        preguntarPseudomonas();
+        new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+
+    if (datos.especial === "ITU_PIELO") {
+        document.getElementById('modalDecisionTitulo').innerText = "Criterios de Ingreso (Pielo)";
+        preguntarIngresoPielo();
+        new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+    if (datos.especial === "ITS_ALG") {
+        mostrarPasoITS(1); // Función que crearemos ahora
+        new bootstrap.Modal(document.getElementById('modalITS')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+
+    // --- BLOQUE DE LÓGICA COMÚN (Para patologías estándar y Peritonitis) ---
+
+    // Definimos flags de patología
+    const esCistitis = nombrePatologia.includes("cistitis") && !nombrePatologia.includes("colecistitis");
+    const esDiarrea = nombrePatologia.includes("enteritis") || nombrePatologia.includes("diarrea");
+    const esArticular = nombrePatologia.includes("artritis") || nombrePatologia.includes("bursitis");
+    const esPPB = s === "PIEL";
+    const esPieDiabetico = s === "PIE";
+    const esPieGrave = esPieDiabetico && (nombrePatologia.includes("moderado") || nombrePatologia.includes("grave"));
+    const requiereDrenajePPB = esPPB && (nombrePatologia.includes("ingreso") || nombrePatologia.includes("fascitis") || nombrePatologia.includes("mastitis"));
+    const esAltaPPB = esPPB && nombrePatologia.includes("alta");
+    const esPPB_Grave = esPPB && !esAltaPPB;
+    const scorePanel = document.getElementById('score-panel');
+    // Agrupamos las patologías que NO usan betalactámicos (no necesitan alerta PEN-FAST)
+    const esAlternativaNoAlergia = nombrePatologia.includes("cistitis") ||
+                                   nombrePatologia.includes("chlamydia") || 
+                                   nombrePatologia.includes("mycoplasmoides");
+    
+    // --- 2. Alerta PEN-FAST ---
+    let advertenciaAlergia = "";
+    if (!datos.esViral && 
+        !esCistitis && 
+        !esDiarrea && 
+        !esAlternativaNoAlergia && // <--- Nueva excepción añadida aquí
+        scorePanel && scorePanel.style.display === 'block' && 
+        scorePanel.innerText !== "" && !scorePanel.innerText.includes("MUY BAJO")) {
+    
+        advertenciaAlergia = `
+            <div class="alerta-flash text-danger">
+                <small class="d-block fw-bold">⚠️ ALERTA DE SEGURIDAD:</small>
+                Riesgo de alergia PEN-FAST (${scorePanel.innerText}).
+            </div>`;
+    }
+
+    let contenido = advertenciaAlergia;
+
+    // --- CASO ESPECÍFICO PERITONITIS (Corregido) ---
+    if (datos.especial === "PERITONITIS_T") {
+        let t_eleccion = "<b>Meropenem</b> 2g/8h IV + <b>Linezolid</b> 600mg/12h IV +/- <b>Fluconazol</b> 400mg/12h IV o <b>anfotericina B liposomal</b> 5mg/Kg/24h IV.<br>Interconsulta a <b>Cirugía general</b>.<br> Prioridad de lavado/drenaje";
+        let t_alternativo = "Tigeciclina 100mg IV seguido de 50mg/12h IV + amikacina 20mg/Kg/24h IV + ciprofloxacino 400mg/8h +/- Fluconazol 400mg/12h IV o anfotericina B liposomal 5mg/Kg/24h IV";
+
+        // 1. Añadimos la Alerta de Seguridad PEN-FAST manualmente aquí
+        let alertaPeritonitis = "";
+        if (scorePanel && scorePanel.style.display === 'block' && 
+            scorePanel.innerText !== "" && !scorePanel.innerText.includes("MUY BAJO")) {
+            alertaPeritonitis = `
+                <div class="alerta-flash text-danger mb-3">
+                    <small class="d-block fw-bold">⚠️ ALERTA DE SEGURIDAD:</small>
+                    Riesgo de alergia PEN-FAST (${scorePanel.innerText}). Meropenem presenta reactividad cruzada.
+                </div>`;
+        }
+
+        contenido = alertaPeritonitis + `
+            <div class="alert alert-info border-0 mb-3">
+                <small class='fw-bold d-block mb-1 text-uppercase'>Tratamiento Empírico:</small>
+                ${t_eleccion}
+            </div>
+            <div class="btn-calculadora mb-3" 
+                onclick="abrirCalculadoraDesdeModal()" 
+                style="background-color: #fce4ec; color: #c2185b; border: 1px solid #f8bbd0; cursor: pointer; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;">
+                CALCULAR CANDIDA SCORE
+            </div>
+        
+            <div class="alert-alergia mb-3">
+                <span class="alergia-header">⚠️ En caso de alergia a Betalactámicos:</span>
+                <div class="small">${t_alternativo}</div>
+            </div>
+
+            <div class="nota-micro">
+                <b>🧫 Recomendación:</b><br>
+                En peritonitis terciaria es mandatorio obtener cultivos de líquido peritoneal. 
+                <b>Si Candida Score ≥ 3:</b> Iniciar Equinocandina (Anidulafungina o Caspofungina).
+            </div>`;
+
+        document.getElementById('m-title').innerText = "Peritonitis Terciaria / Nosocomial";
+        document.getElementById('m-body').innerHTML = contenido;
+        new bootstrap.Modal(document.getElementById('modalRec')).show();
+        resetearSelector(selectorPatologia);
+        return;
+    }
+
+    // --- BLOQUE DE TRATAMIENTO ESTÁNDAR ---
+
+    // 2. Badge CURB-65 (Solo NAC, no EPOC)
+    const esEPOC = i.toUpperCase().includes("EPOC");
+    if (s === "RESP" && typeof puntuacionCurbGlobal !== 'undefined' && puntuacionCurbGlobal !== null && !esEPOC) {
+        contenido += `
+            <div style="float: right; margin-top: -10px;">
+                <span class="badge rounded-pill bg-dark">CURB-65: ${puntuacionCurbGlobal}</span>
+            </div>
+            <div style="clear: both;"></div>`;
+    }
+
+    // --- 3. Tratamiento de Elección ---
+    contenido += `
+        <div class="alert alert-info border-0 mb-0">
+            <small class='fw-bold d-block mb-1 text-uppercase'>Tratamiento de Elección:</small>
+            ${datos.p || "Consulte protocolo local"}
+        </div>`;
+
+    // --- 4. Alternativa (Alergia o Segunda Línea) ---
+    if (!datos.esViral && datos.a) {
+        // Definimos qué patologías NO usan betalactámicos de entrada
+        
+        if (esAlternativaNoAlergia) {
+            // Estilo para alternativas médicas (resistencia, fallo o segunda línea)
+            contenido += `
+                <div class="alert-alternativo" style="background-color: #f8f9fa; border-left: 5px solid #6c757d; padding: 10px; margin-top: 10px;">
+                    <span class="alternativo-header" style="color: #495057; fw-bold">🔄 Tratamiento Alternativo:</span>
+                    <div class="small">${datos.a}</div>
+                </div>`;
+        } else {
+            // Estilo clásico para Alergia a Betalactámicos
+            contenido += `
+                <div class="alert-alergia">
+                    <span class="alergia-header">⚠️ En caso de alergia a Betalactámicos:</span>
+                    <div class="small">${datos.a}</div>
+                </div>`;
+        }
+    }
+
+    // 5. Lógica de Notas Micro
+    // A. BLOQUE ESPECÍFICO PARA PIEL (PPB)
+    if (esPPB) {
+        // 1. Siempre exudado nasal (para todas)
+        contenido += `
+            <div class="nota-micro" style="border-left: 5px solid #6c757d; background-color: #f8f9fa;">
+                <b>👃 Cribado SAMR:</b> Tomar muestra de <b>exudado nasal</b> siempre para detectar colonización por SAMR.
+            </div>`;
+
+        // 2. Si es moderada/grave/fascitis/mastitis (NO alta)
+        if (esPPB_Grave) {
+            contenido += `
+                <div class="nota-micro" style="border-left: 5px solid #dc3545; background-color: #fff5f5;">
+                    <b>🔪 Control del Foco:</b><br>
+                    En caso de foco drenable o fascitis necrotizante, <b>priorizar drenaje</b> + interconsulta a <b>Traumatología</b> o <b>Cirugía General</b> (afectación perineal).
+                </div>
+                <div class="nota-micro">
+                    <b>🧫 Protocolo Hemocultivos:</b><br>
+                    Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.)
+                </div>`;
+        } 
+        // Si es alta a domicilio, aquí NO sumamos nada más (ni hemocultivos ni drenaje)
+    }
+    else {
+         const esBajoRiesgo = nombrePatologia.includes("leve") || nombrePatologia.includes("moderado");
+    if (esPieGrave) {
+        // Notas específicas para el caso moderado/grave
+        contenido += `
+            <div class="nota-micro" style="border-left: 5px solid #fd7e14; background-color: #fff8f1;">
+                <b>🩺 Valoración Vascular:</b><br>
+                Evaluar pulsos y considerar <b>Índice Tobillo-Brazo (ITB)</b> o consulta a <b>Cirugía vascular</b> para descartar isquemia.
+            </div>
+            <div class="nota-micro">
+                <b>🧫 Microbiología:</b><br>
+                Evitar frotis superficial. Preferible <b>biopsia de tejido profundo</b> o aspirado.
+            </div>
+            <div class="nota-micro">
+                <b>🧫 Protocolo Hemocultivos:</b><br>
+                Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.).
+            </div>`;
+    }
+    if (esDiarrea) {
+        contenido += `
+            <div class="nota-micro" style="border-left: 5px solid #ff9800; background-color: #fff3e0;">
+                <b>💩 Protocolo de Diarrea:</b><br>
+                • No se recomiendan hemocultivos de rutina.<br>
+                • <b>Si diarrea nosocomial (>48h ingreso) o tras ATB prolongada:</b> Pedir toxina de <i>Clostridioides difficile</i> + coprocultivo.
+            </div>`;
+    } else if (s === "ITS") {
+        contenido += `
+            <div class="nota-micro" style="border-left: 5px solid #6f42c1; background-color: #f3f0ff;">
+                <b>🧫 Microbiología ITS:</b><br>
+                • <b>PCR (NAAT):</b> Primera fracción de orina, frotis faríngeo, vaginal o anal.<br>
+                • <b>Exudado:</b> Si hay secreción purulenta o úlcera para estudio de resistencias.
+            </div>`;
+    } else if (esArticular) {
+    // NOTA ESPECÍFICA PARA ARTICULARES (Nueva)
+    contenido += `
+        <div class="nota-micro" style="border-left: 5px solid #0d6efd; background-color: #f0f7ff;">
+            <b>💉 Recomendación Articular:</b><br>
+            Realizar <b>punción articular</b>. Siempre toma de muestra precoz y drenaje precoz (control del foco).
+        </div>
+        <div class="nota-micro">
+            <b>🧫 Protocolo Hemocultivos:</b><br>
+            Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.)
+        </div>`;
+    } else if (!datos.esViral && !esBajoRiesgo && !esCistitis && s !== "ITS") {
+        contenido += `
+            <div class="nota-micro">
+                <b>🧫 Protocolo Hemocultivos:</b><br>
+                Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.)
+            </div>
+            <div class="desescalar-badge">🔄 Con resultados: DESESCALAR</div>`;
+    } else if (datos.esViral) {
+        contenido += `
+            <div class="nota-micro" style="border-left-color: #6f42c1;">
+                <b>🧬 Alternativa:</b> No existe ninguna.
+            </div>`;
+    }
+    }
+
+    // 6. Mostrar Modal
+    document.getElementById('m-title').innerText = i;
+    document.getElementById('m-body').innerHTML = contenido;
+    new bootstrap.Modal(document.getElementById('modalRec')).show();
+
+    // 7. Reseteo final
+    resetearSelector(selectorPatologia);
+}
+
+// Función auxiliar para no repetir código de reseteo
+function resetearSelector(selector) {
+    setTimeout(() => {
+        selector.selectedIndex = 0;
+        puntuacionCurbGlobal = null;
+        const checks = ['c-c', 'c-u', 'c-r', 'c-b', 'c-65'];
+        checks.forEach(id => { if(document.getElementById(id)) document.getElementById(id).checked = false; });
+        const display = document.getElementById('curb-total-display');
+        if (display) { display.innerText = "PUNTUACIÓN ACTUAL: 0"; display.style.color = "#004a99"; }
+    }, 500);
+}
+    
+    function mostrarPasoAlgoritmo(paso) {
+    const body = document.getElementById('alg-body');
+    const footer = document.getElementById('alg-footer');
+    let html = "";
+    let botones = "";
+
+    switch(paso) {
+        case 1:
+            html = `<h5><b>Paso 1: Valoración de Riesgo</b></h5>
+                    <p class='small'>¿Presenta el paciente alguno de estos criterios?</p>
+                    <ul class='text-danger fw-bold'>
+                        <li>Inmunosupresión</li><li>Antecedentes Enf. SNC</li><li>Convulsiones</li>
+                        <li>Papiledema</li><li>Alteración de conciencia</li><li>Déficit focal</li>
+                    </ul>`;
+            botones = `<button class='btn btn-danger btn-si-no' onclick='mostrarPasoAlgoritmo(2)'>SÍ</button>
+                       <button class='btn btn-success btn-si-no' onclick='mostrarPasoAlgoritmo(3)'>NO</button>`;
+            break;
+        case 2: // SÍ a los antecedentes
+            html = `<div class='alert alert-warning'>
+                        <b>CONDUCTA:</b><br>
+                        1. Hemocultivos.<br>
+                        2. ATB Empírico + Dexametasona.<br>
+                        3. Solicitar <b>TAC Craneal</b>.
+                    </div>
+                    <p class='small fw-bold mt-2'>¿Existe contraindicación para Punción Lumbar?</p>`;
+            botones = `<button class='btn btn-secondary btn-si-no' onclick='mostrarPasoAlgoritmo(4)'>SÍ</button>
+                       <button class='btn btn-primary btn-si-no' onclick='mostrarPasoAlgoritmo(5)'>NO</button>`;
+            break;
+        case 3: // NO a los antecedentes
+            html = `<div class='alert alert-success'>
+                        <b>CONDUCTA DIRECTA:</b><br>
+                        1. Hemocultivos.<br>
+                        2. <b>Realizar Punción Lumbar (PL)</b>.<br>
+                        3. Iniciar ATB Empírico + Dexametasona inmediatamente tras PL.
+                    </div>`;
+            botones = `<button class='btn btn-info w-100 text-white' onclick='mostrarPasoAlgoritmo(6)'>Siguiente (Resultado LCR)</button>`;
+            break;
+        case 4: // Contraindicación PL
+            html = `<div class='alert alert-danger'>
+                        <b>Mantenemos tratamiento empírico</b> y procedemos a reevaluación diagnóstica constante.
+                    </div>`;
+            botones = `<button class='btn btn-outline-secondary w-100' data-bs-dismiss='modal'>Cerrar</button>`;
+            break;
+        case 5: // TAC hecho y sin contraindicación
+            html = `<div class='alert alert-primary'>Realizar Punción Lumbar ahora.</div>`;
+            botones = `<button class='btn btn-info w-100 text-white' onclick='mostrarPasoAlgoritmo(6)'>Siguiente (Resultado LCR)</button>`;
+            break;
+        case 6: // Análisis LCR
+            html = `<h5><b>Análisis de LCR</b></h5>
+                    <p class='small'>¿El resultado sugiere Meningitis Bacteriana?</p>`;
+            botones = `<button class='btn btn-danger btn-si-no' onclick='mostrarPasoAlgoritmo(7)'>SÍ</button>
+                       <button class='btn btn-success btn-si-no' onclick='mostrarPasoAlgoritmo(8)'>NO</button>`;
+            break;
+        case 7: // Sugiere bacteriana
+            html = `<div class='alert alert-dark'>
+                        <b>Realizar TINCIÓN DE GRAM:</b><br>
+                        Ajustar o mantener ATB según el resultado del Gram y esperar cultivo.
+                    </div>`;
+            botones = `<button class='btn btn-outline-secondary w-100' data-bs-dismiss='modal'>Finalizar</button>`;
+            break;
+        case 8: // No sugiere bacteriana
+            html = `<div class='alert alert-secondary'>Reevaluación diagnóstica (Virus, otras causas).</div>`;
+            botones = `<button class='btn btn-outline-secondary w-100' data-bs-dismiss='modal'>Finalizar</button>`;
+            break;
+    }
+
+    body.innerHTML = html;
+    footer.innerHTML = botones;
+    }
+    function preguntarSAMR() {
+       const body = document.getElementById('dec-body');
+       const footer = document.getElementById('dec-footer');
+
+       body.innerHTML = `
+           <i class="bi bi-search text-warning" style="font-size: 2rem;"></i>
+           <h5 class="mt-3 fw-bold">Investigar colonización por SAMR</h5>
+           <p class="text-muted">¿Tiene el paciente factores de riesgo o colonización previa confirmada por SAMR?</p>
+       `;
+
+       footer.innerHTML = `
+           <button class="btn btn-danger btn-si-no" onclick="mostrarTratamientoGrave(true)">SÍ</button>
+           <button class="btn btn-success btn-si-no" onclick="mostrarTratamientoGrave(false)">NO</button>
+       `;
+    }
+    function mostrarTratamientoGrave(tieneSAMR) {
+        // Cerramos la modal de pregunta
+        const modalPregunta = bootstrap.Modal.getInstance(document.getElementById('modalDecisionSNC'));
+        if (modalPregunta) modalPregunta.hide();
+        // Recuperamos Score PEN-FAST (Igual que en openRec)
+        const scorePanel = document.getElementById('score-panel');
+        let advertenciaAlergia = "";
+        if (scorePanel.style.display === 'block' && 
+            scorePanel.innerText !== "" && 
+            !scorePanel.innerText.includes("MUY BAJO")) {
+        
+            advertenciaAlergia = `
+                <div class="alerta-flash text-danger">
+                    <small class="d-block fw-bold">⚠️ ALERTA DE SEGURIDAD:</small>
+                    Riesgo de alergia marcado en PEN-FAST (${scorePanel.innerText}).
+                </div>`;
+        }
+        // Definimos los tratamientos según la respuesta
+        let titulo = tieneSAMR ? "Neumonía Grave (Con Riesgo SAMR)" : "Neumonía Grave (Sin Riesgo SAMR)";
+        let t_eleccion = tieneSAMR 
+            ? "<b>Meropenem</b> 2g/8h iv + <b>Linezolid</b> 600 mg/12h (suspensión de terapia guiada por mejoría clínica y PCT <0,1)" 
+            : "<b>Ceftarolina</b> 600 mg/8h (suspensión de terapia guiada por mejoría clínica y PCT <0,1) + <b>Azitromicina</b> 500 mg/24h durante 3 días";
+        let t_alergia = tieneSAMR
+            ? "Levofloxacino 500 mg/12h + Linezolid 600 mg/12h"
+            : "Levofloxacino 500 mg/12h";
+        let contenido = advertenciaAlergia;
+        // AÑADIR PUNTUACIÓN CURB-65 EN LA ESQUINA (Si existe)
+        if (puntuacionCurbGlobal !== null) {
+            contenido += `
+                <div style="float: right; margin-top: -10px;">
+                    <span class="badge rounded-pill bg-dark">CURB-65: ${puntuacionCurbGlobal}</span>
+                </div>
+                <div style="clear: both;"></div>`;
+        }
+        // Reutilizamos la lógica de construcción de contenido de tu modalRec
+        contenido += `
+            <div class="alert alert-info border-0 mb-0">
+                <small class='fw-bold d-block mb-1'>TRATAMIENTO DE ELECCIÓN:</small>
+                ${t_eleccion}
+            </div>
+            <div class="alert-alergia mt-2">
+                <span class="alergia-header">⚠️ En caso de alergia a Betalactámicos:</span>
+                <div class="small">${t_alergia}</div>
+            </div>
+            <div class="nota-micro">
+                <b>🧫 Protocolo Hemocultivos:</b><br>
+                Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.) + <b>Frotis nasal para SAMR</b>.
+            </div>
+            <div class="desescalar-badge">
+                🔄 Con resultados microbiológicos: DESESCALAR
+            </div>`;
+        document.getElementById('m-title').innerText = titulo;
+        document.getElementById('m-body').innerHTML = contenido;
+    
+        // Mostramos la modal de tratamiento final (la de siempre)
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('modalRec')).show();
+        }, 400); // Pequeño delay para que no se pisen las animaciones de las modales
+    }
+    function preguntarPseudomonas() {
+        const body = document.getElementById('dec-body');
+        const footer = document.getElementById('dec-footer');
+
+        body.innerHTML = `
+            <i class="bi bi-shield-exclamation text-primary" style="font-size: 2rem;"></i>
+            <h6 class="mt-3 fw-bold">Riesgo de Pseudomonas aeruginosa</h6>
+            <p class="small text-muted">¿Presenta criterios de riesgo? (Bronquiectasias, aislamiento previo, tto. antibiótico reciente o corticoide >10mg/día).</p>
+        `;
+
+        footer.innerHTML = `
+            <button class="btn btn-danger btn-si-no" onclick="mostrarTratamientoEPOC(true)">SÍ</button>
+            <button class="btn btn-success btn-si-no" onclick="mostrarTratamientoEPOC(false)">NO</button>
+        `;
+    }
+    function mostrarTratamientoEPOC(tienePseudo) {
+       const modalPregunta = bootstrap.Modal.getInstance(document.getElementById('modalDecisionSNC'));
+       if (modalPregunta) modalPregunta.hide();
+
+       // 1. Alerta PEN-FAST (Mantenemos por seguridad de prescripción)
+       const scorePanel = document.getElementById('score-panel');
+       let advertenciaAlergia = "";
+       if (scorePanel.style.display === 'block' && scorePanel.innerText !== "" && !scorePanel.innerText.includes("MUY BAJO")) {
+           advertenciaAlergia = `
+               <div class="alerta-flash text-danger">
+                   <small class="fw-bold">⚠️ ALERTA DE SEGURIDAD:</small>
+                   Riesgo de alergia marcado en PEN-FAST (${scorePanel.innerText}).
+               </div>`;
+       }
+
+       // 2. Definición de Títulos y Fármacos
+       let titulo = tienePseudo ? "EPOC Exacerbado (Riesgo Pseudomonas)" : "EPOC Exacerbado (Sin Riesgo Pseudomonas)";
+    
+       // Ajuste de dosis según guías habituales de EPOC
+       let t_eleccion = tienePseudo 
+           ? "<b>Cefepine</b> 2g/8h iv o <b>Meropenem</b> 2g/8h iv" 
+           : "<b>Ceftriaxona</b> 2g/24h iv de 7 a 10 días";
+        
+       let t_alergia = tienePseudo
+           ? "Levofloxacino 500mg/12h + Amikacina 15-30mg/kg/día de 7 a 10 días"
+           : "Levofloxacino 500mg/12h o Moxifloxacino 400mg/24h vo de 7 a 10 días";
+
+       // 3. Construcción del Contenido (SIN CURB-65)
+       let contenido = advertenciaAlergia;
+
+       contenido += `
+           <div class="alert alert-info border-0 mb-0">
+               <small class='fw-bold d-block mb-1'>TRATAMIENTO ANTIBIÓTICO EMPÍRICO:</small>
+               ${t_eleccion}
+           </div>
+           <div class="alert-alergia mt-2">
+               <span class="alergia-header">⚠️ Alternativa por Alergia:</span>
+               <div class="small">${t_alergia}</div>
+           </div>
+           <div class="nota-micro">
+               <b>📋 Manejo Clínico:</b><br>
+               Optimizar broncodilatadores (SABA/SAMA) y valorar corticoterapia sistémica (Prednisona 40mg/día, 5 días). 
+               <b>Esputo:</b> Solo si riesgo de Pseudomonas o mala respuesta.
+           </div>`;
+
+       document.getElementById('m-title').innerText = titulo;
+       document.getElementById('m-body').innerHTML = contenido;
+    
+       setTimeout(() => {
+           new bootstrap.Modal(document.getElementById('modalRec')).show();
+       }, 400);
+    }
+    function preguntarIngresoPielo() {
+       const body = document.getElementById('dec-body');
+       const footer = document.getElementById('dec-footer');
+
+       body.innerHTML = `
+           <i class="bi bi-hospital text-danger" style="font-size: 2rem;"></i>
+           <h6 class="mt-3 fw-bold">¿Tiene el paciente criterios de Ingreso?</h6>
+           <p class="small text-muted text-start">
+               • Intolerancia oral / Vómitos<br>
+               • Sepsis o inestabilidad<br>
+               • Embarazo o Obstrucción vía urinaria<br>
+               • Comorbilidad grave o falta de apoyo social
+           </p>
+       `;
+
+       footer.innerHTML = `
+           <button class="btn btn-danger btn-si-no" onclick="mostrarTratamientoPielo(true)">SÍ (Ingreso)</button>
+           <button class="btn btn-success btn-si-no" onclick="mostrarTratamientoPielo(false)">NO (Ambulatorio)</button>
+       `;
+    }
+    function mostrarTratamientoPielo(esIngreso) {
+        const modalPregunta = bootstrap.Modal.getInstance(document.getElementById('modalDecisionSNC'));
+        if (modalPregunta) modalPregunta.hide();
+
+        // 1. Lógica de Alerta PEN-FAST
+        let advertenciaAlergia = "";
+        const scorePanel = document.getElementById('score-panel');
+        if (scorePanel && scorePanel.style.display === 'block' && 
+            scorePanel.innerText !== "" && !scorePanel.innerText.includes("MUY BAJO")) {
+        
+            advertenciaAlergia = `
+                <div class="alerta-flash text-danger">
+                    <small class="d-block fw-bold">⚠️ ALERTA DE SEGURIDAD:</small>
+                    Riesgo de alergia marcado en PEN-FAST (${scorePanel.innerText}).
+                </div>`;
+        }
+
+        let titulo = esIngreso ? "Pielonefritis (Tratamiento Hospitalario)" : "Pielonefritis (Tratamiento Ambulatorio)";
+
+        // 2. Definimos fármacos
+        let t_eleccion = esIngreso 
+            ? "<b>Ceftriaxona</b> 2g/24h IV durante 7 días" 
+            : "<b>Ceftriaxona</b> 2g/12h IV en observación. Al alta, <b>Cefixima</b> 400mg/12h durante 7 días";
+    
+        let t_alternativo = esIngreso
+            ? "Si alergia real a penicilina: <b>Aztreonam</b> 1g/8h IV. Si PEN-FAST <3: <b>Ertapenem</b> 1g/24h IV"
+            : "<b>Ciprofloxacino</b> 500mg/12h VO durante 7 días";
+
+        // 3. Construcción del contenido
+        let contenido = advertenciaAlergia; 
+        contenido += `
+            <div class="alert alert-info border-0 mb-3">
+                <small class='fw-bold d-block mb-1 text-uppercase'>Tratamiento de Elección:</small>
+                ${t_eleccion}
+            </div>
+        
+            <div class="alert-alergia mt-2 mb-3">
+                <span class="alergia-header">⚠️ En caso de alergia a Betalactámicos:</span>
+                <div class="small">${t_alternativo}</div>
+            </div>
+
+            <div class="nota-micro">
+                <b>🧫 Microbiología:</b><br>
+                ${esIngreso ? 'Imprescindible <b>Urocultivo + Hemocultivos:</b> extraer 2 tomas (4 botes) antes del ATB. Identificar origen.' : 'Realizar <b>Urocultivo</b> sistemático antes de iniciar ATB.'}
+            </div>`;
+
+        document.getElementById('m-title').innerText = titulo;
+        document.getElementById('m-body').innerHTML = contenido;
+
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('modalRec')).show();
+        }, 400);
+    }
+    // Variable global para saber el origen
+    let vieneDeTratamiento = false;
+    
+    function mostrarPasoITS(paso) {
+    const body = document.getElementById('bodyITS');
+    let html = "";
+
+    if (paso === 1) {
+        html = `
+            <div class="alert alert-warning border-0">
+                <h6 class="fw-bold">🚨 Sospecha o Riesgo de ITS</h6>
+                <ul class="small mb-0">
+                    <li><b>Serología basal:</b> VIH, VHC, VHB, VHA y LUES.</li>
+                    <li><b>Muestras moleculares (NAAT):</b> Orina y faringe + Vaginal/Anal (según tipo de contacto).</li>
+                </ul>
+            </div>
+            <p class="text-center fw-bold fs-6 mt-3">Seleccione el escenario clínico:</p>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-danger fs-5" onclick="mostrarPasoITS(2)">⏱️ Exposición < 72 horas</button>
+                <button class="btn btn-outline-primary fs-5" onclick="mostrarPasoITS(3)">🌡️ Sintomática</button>
+                <button class="btn btn-outline-success fs-5" onclick="mostrarPasoITS(4)">👤 Asintomática</button>
+            </div>`;
+    } 
+    
+    else if (paso === 2) { // < 72 HORAS
+        html = `
+            <div class="alert alert-danger border-0">
+                <h6 class="fw-bold">⚠️ PROFILAXIS POST-EXPOSICIÓN (PPE)</h6>
+                <p class="small">Valorar necesidad de profilaxis VIH según el tipo de riesgo.</p>
+                <div class="p-2 bg-white rounded border border-danger mb-3">
+                    <b class="text-danger">DERIVAR URGENTE:</b> Sin cita al siguiente día laborable a Consulta de Enfermedades Infecciosas.
+                </div>
+                <p class="small mb-0"><b>KIT de urgencia:</b> En casos críticos, iniciar los primeros 3 comprimidos (Pauta: <b>BIKTARVY</b> durante 28 días).</p>
+            </div>
+            <button class="btn btn-secondary btn-sm w-100" onclick="mostrarPasoITS(1)">⬅️ Volver</button>`;
+    } 
+    
+    else if (paso === 3) { // SINTOMÁTICA
+        const scorePanel = document.getElementById('score-panel');
+        let alertaAlergiaITS = "";
+
+        // Comprobamos si hay riesgo en PEN-FAST (Si el panel está activo y no es MUY BAJO)
+        if (scorePanel && scorePanel.style.display === 'block' && 
+            scorePanel.innerText !== "" && !scorePanel.innerText.includes("MUY BAJO")) {
+        
+            alertaAlergiaITS = `
+                <div class="alerta-flash text-danger mb-3" style="border: 2px solid #dc3545; border-radius: 8px; padding: 10px;">
+                    <small class="d-block fw-bold">⚠️ ALERTA PEN-FAST:</small>
+                    Riesgo de alergia detectado (${scorePanel.innerText}). 
+                    <b>Considere usar la alternativa de Gentamicina.</b>
+                </div>`;
+        }
+
+        html = `
+            ${alertaAlergiaITS}
+            <div class="alert alert-info border-0 mb-3">
+                <h6 class="fw-bold">💊 Tratamiento Empírico de Elección:</h6>
+                <span class="fs-5"><b>Ceftriaxona</b> 1g I.M. + <b>Doxiciclina</b> 100mg/12h (durante 7 días).</span>
+            </div>
+            <div class="alert-alergia mb-3">
+                <span class="alergia-header">🔄 Alternativa por Alergia / Riesgo PEN-FAST:</span>
+                <div>Gentamicina 5mg/kg I.M. + Azitromicina 2g V.O. (dosis única).</div>
+            </div>
+            <div class="nota-micro mb-3">
+                <b>🧫 Toma de muestras:</b><br>
+                Cultivo bacteriológico +/- molecular de úlcera según síntomas.
+            </div>
+            <div class="desescalar-badge text-center fs-6">📅 Recoger resultados en Atención Primaria.</div>
+            <button class="btn btn-secondary btn-sm w-100 mt-2" onclick="mostrarPasoITS(1)">⬅️ Volver</button>`;
+    } 
+    
+    else if (paso === 4) { // ASINTOMÁTICA
+        html = `
+            <div class="alert alert-success border-0 text-center">
+                <h6 class="fw-bold">✅ Paciente Asintomático</h6>
+                <p>No requiere tratamiento empírico inmediato tras la toma de muestras.</p>
+                <div class="desescalar-badge fs-6">📅 Recoger resultados en Atención Primaria.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm w-100 mt-2" onclick="mostrarPasoITS(1)">⬅️ Volver</button>`;
+    }
+
+    body.innerHTML = html;
+}
+    function abrirCalculadoraDesdeModal() {
+        vieneDeTratamiento = true; // Marcamos que venimos de Peritonitis
+    
+        const modalTratamientoEl = document.getElementById('modalRec');
+        const instancia = bootstrap.Modal.getInstance(modalTratamientoEl);
+        if (instancia) instancia.hide();
+
+        setTimeout(() => {
+            // Limpieza de backdrops para evitar pantalla oscura
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        
+            const modalCandida = new bootstrap.Modal(document.getElementById('modalCandida'));
+            modalCandida.show();
+            }, 400);
+    }
+    function cerrarCalculadoraYVolver() {
+        // 1. Cerramos la calculadora
+        const modalCandidaEl = document.getElementById('modalCandida');
+        const instanciaCandida = bootstrap.Modal.getInstance(modalCandidaEl);
+        if (instanciaCandida) instanciaCandida.hide();
+
+        // 2. Si veníamos de tratamiento, lo reabrimos
+        if (vieneDeTratamiento) {
+            setTimeout(() => {
+                // Limpieza de seguridad
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            
+                // Reabrimos la modal de recomendación (que aún conserva el texto de la Peritonitis)
+                const modalRec = new bootstrap.Modal(document.getElementById('modalRec'));
+                modalRec.show();
+            
+                // Reseteamos la variable para la próxima vez
+                vieneDeTratamiento = false;
+            }, 400);
+        }
+}
+    function showSemaforo() {
+        // Si la imagen tenía zoom de una vez anterior, se lo quitamos al abrir
+        const img = document.getElementById('img-semaforo');
+        img.classList.remove('zoomed');
+    
+        new bootstrap.Modal(document.getElementById('modalSem')).show();
+    }
+
+    function toggleZoom(elemento) {
+        elemento.classList.toggle('zoomed');
+    
+        // Si quitamos el zoom, volvemos arriba. 
+        // Si lo ponemos, permitimos que el navegador recalcule el área de scroll
+        if (!elemento.classList.contains('zoomed')) {
+            document.getElementById('wrapper-semaforo').scrollLeft = 0;
+            document.getElementById('wrapper-semaforo').scrollTop = 0;
+        }
+    }
+    // ========== MODAL ACERCA DE ==========
+    const aboutBtn = document.getElementById("about-btn");
+    const aboutModal = document.getElementById("about-modal");
+    const closeAbout = document.getElementById("close-about");
+    const aboutVideo = document.getElementById("about-video");
+
+    aboutBtn.addEventListener("click", () => {
+        // 1. Reset total del vídeo (Manteniéndolo invisible)
+        aboutVideo.style.opacity = "0";
+        aboutVideo.pause();
+        aboutVideo.currentTime = 0;
+        aboutVideo.load();
+        // 2. Abrir la modal
+        aboutModal.style.display = "flex";
+        aboutModal.setAttribute("aria-hidden","false");
+        // 3. Detectar el momento exacto en que empieza a reproducirse
+        // El evento 'playing' ocurre cuando el vídeo ya no está cargando ni pausado
+        aboutVideo.onplaying = () => {
+        aboutVideo.style.opacity = "1";
+        };
+        // 4. Intentar reproducir
+        aboutVideo.play().catch(error => {
+        console.log("Error autoplay:", error);
+        });
+    });   
+
+    // En el cierre, volvemos a poner la opacidad a 0
+    const handleClose = () => {
+        aboutModal.style.display = "none";
+        aboutModal.setAttribute("aria-hidden", "true");
+        aboutVideo.pause();
+        aboutVideo.currentTime = 0;
+        aboutVideo.style.opacity = "0"; 
+    };
+
+    closeAbout.addEventListener("click", handleClose);
+    aboutModal.addEventListener("click", (e) => {
+        if (e.target === aboutModal) handleClose();
+    });
+    
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/ABCalcApp/www/sw.js')
+        .then(reg => console.log('SW activo para este módulo'))
+        .catch(err => console.error('Error al verificar SW', err));
+    });
+  }
+  // Bloqueo específico para Android/Chrome PWA
+  document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+      event.preventDefault(); // Bloquea el gesto de pinza
+    }
+  }, { passive: false });
+</script>
+</body>
+</html>
