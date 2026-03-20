@@ -562,6 +562,7 @@
         </div>
 
         <div class="accordion-item card-main">
+        <div id="punto-fijo-MDR" style="display: block; visibility: hidden; position: relative; top: -20px;"></div>
             <h2 class="accordion-header" id="headingMDR"> <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
                    <span class="me-1">⚠️</span>
                    <span style="flex: 1;">Criterios riesgo multirre&shy;sistentes (MDR)</span>
@@ -694,7 +695,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.8. © Paco Casado. Granada 2026.
+                    Versión 1.0.9. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -713,7 +714,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.8. © Paco Casado. Granada 2026.
+                        Versión 1.0.9. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -1265,25 +1266,24 @@ function calcFast() {
             event.stopPropagation();
         }
 
-        const cabecera = document.getElementById('headingMDR');
         const contenido = document.getElementById('collMDR');
+        const anclaFija = document.getElementById('punto-fijo-MDR');
 
-        if (cabecera && contenido) {
-            // 1. CAPTURAMOS LA POSICIÓN ACTUAL (La "foto" que decías)
-            // Usamos pageYOffset para saber cuántos píxeles hay desde el techo real de la web
-            const posicionActual = cabecera.getBoundingClientRect().top + window.pageYOffset - 20;
-
-            // 2. CERRAMOS EL ACORDEÓN
+        // 1. Cerramos el acordeón primero
+        if (contenido) {
             const instance = bootstrap.Collapse.getOrCreateInstance(contenido);
             instance.hide();
+        }
 
-            // 3. FORZAMOS EL SCROLL A ESA POSICIÓN FIJA
-            // Al darle una cifra exacta (ej. 1450px), el navegador no tiene que "pensar"
-            // y se queda anclado ahí mientras el acordeón desaparece debajo.
-            window.scrollTo({
-                top: posicionActual,
-                behavior: 'smooth'
-            });
+        // 2. Forzamos el scroll al ancla invisible que NO se mueve
+        if (anclaFija) {
+            // Usamos un pequeño delay para que Bootstrap termine de "soltar" el foco del botón
+            setTimeout(() => {
+                anclaFija.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 50);
         }
     }
     function calcCandida() {
