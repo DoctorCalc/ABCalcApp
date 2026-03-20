@@ -1,4 +1,4 @@
-const CACHE_NAME = 'abcalc-v1.0.6'; 
+const CACHE_NAME = 'abcalc-v1.0.7'; 
 
 const ASSETS = [
   './',
