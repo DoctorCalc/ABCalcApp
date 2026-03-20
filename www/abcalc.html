@@ -1318,9 +1318,9 @@ function calcFast() {
     const esPPB_Grave = esPPB && !esAltaPPB;
     const scorePanel = document.getElementById('score-panel');
     // Agrupamos las patologías que NO usan betalactámicos (no necesitan alerta PEN-FAST)
-    const esAlternativaNoAlergia = nombrePatologia.includes("cistitis") ||
-                                   nombrePatologia.includes("chlamydia") || 
-                                   nombrePatologia.includes("mycoplasmoides");
+    const esAlternativaNoAlergia = esCistitis || 
+                               nombrePatologia.includes("chlamydia") || 
+                               nombrePatologia.includes("mycoplasmoides");
     
     // --- 2. Alerta PEN-FAST ---
     let advertenciaAlergia = "";
