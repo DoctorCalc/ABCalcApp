@@ -562,10 +562,9 @@
         </div>
 
         <div class="accordion-item card-main">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
-                    <span class="me-1">⚠️</span>
-                    <span style="flex: 1;">Criterios riesgo multirre&shy;sistentes (MDR)</span>
+            <h2 class="accordion-header" id="headingMDR"> <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
+                   <span class="me-1">⚠️</span>
+                   <span style="flex: 1;">Criterios riesgo multirre&shy;sistentes (MDR)</span>
                 </button>
             </h2>
             <div id="collMDR" class="accordion-collapse collapse">
@@ -695,7 +694,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.5. © Paco Casado. Granada 2026.
+                    Versión 1.0.6. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -714,7 +713,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.5. © Paco Casado. Granada 2026.
+                        Versión 1.0.6. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -1261,30 +1260,34 @@ function calcFast() {
     }
 }
     function cerrarYSubirMDR(event) {
-        if (event) event.preventDefault();
-
-        // 1. Identificamos los elementos (ajusta los IDs si son diferentes)
-        const contenidoMDR = document.getElementById('collMDR');
-        const cabeceraMDR = document.querySelector('[data-bs-target="#collMDR"]');
-
-        // 2. Primero hacemos el scroll hacia la cabecera del acordeón
-        if (cabeceraMDR) {
-            cabeceraMDR.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
         }
 
-        // 3. Cerramos el acordeón usando la API de Bootstrap
-        if (contenidoMDR) {
-            const instance = bootstrap.Collapse.getInstance(contenidoMDR);
-            if (instance) {
-                instance.hide();
-            } else {
-                // Si no hay instancia creada, creamos una y la cerramos
-                new bootstrap.Collapse(contenidoMDR).hide();
-            }
-         }
+        const cabecera = document.getElementById('headingMDR');
+        const contenido = document.getElementById('collMDR');
+
+        if (cabecera) {
+            // 1. Calculamos la posición ANTES de que nada cambie
+            const yOffset = -20; // Un pequeño margen para que respire
+            const y = cabecera.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+            // 2. Saltamos arriba inmediatamente
+            window.scrollTo({
+                top: y,
+                behavior: 'smooth'
+            });
+
+            // 3. Esperamos un pelín (100ms) a que empiece el scroll y cerramos el acordeón
+            // Esto evita que el navegador intente "reajustar" la vista al cerrar
+            setTimeout(() => {
+                if (contenido) {
+                    const instance = bootstrap.Collapse.getOrCreateInstance(contenido);
+                    instance.hide();
+                }
+            }, 100);
+        }
     }
     function calcCandida() {
         let pts = 0;
