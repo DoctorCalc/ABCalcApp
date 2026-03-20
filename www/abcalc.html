@@ -85,6 +85,19 @@
             font-size: 0.85rem;
             animation: flash-border 1s infinite;
         }
+        /* Solo estilos estéticos, sin animaciones */
+        .alerta-penfast-activa {
+            background-image: none !important; /* Quita la flechita azul de Bootstrap */
+            color: #856404 !important;
+            font-weight: bold !important;
+            transition: none !important; /* Evita que Bootstrap suavice el parpadeo del JS */
+        }
+
+        /* Asegura que cuando esté abierto no aparezca el azul claro de fondo */
+        .accordion-button.alerta-penfast-activa:not(.collapsed) {
+            background-color: transparent !important; 
+            box-shadow: none !important;
+        }
         /* Contenedor del semáforo */
         #wrapper-semaforo {
             overflow: auto; 
@@ -597,7 +610,14 @@
                         style="cursor: pointer;">
                         Calculadora Candida Score
                     </div>
-                    
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-sm btn-light text-secondary border d-flex align-items-center gap-2 shadow-sm" 
+                                data-bs-toggle="collapse" data-bs-target="#collMDR"
+                                style="border-radius: 20px; padding: 5px 15px;">
+                            <i class="bi bi-chevron-up"></i> <span>Cerrar y subir</span>
+                            <span style="font-size: 1.2em;">↑</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -674,7 +694,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.3. © Paco Casado. Granada 2026.
+                    Versión 1.0.4. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -693,7 +713,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.3. © Paco Casado. Granada 2026.
+                        Versión 1.0.4. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -846,7 +866,7 @@
                 </p>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary w-100" onclick="cerrarCalculadoraYVolver()">CERRAR</button>
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">CERRAR</button>
             </div>
         </div>
     </div>
@@ -854,6 +874,7 @@
 <script src="js/bootstrap.bundle.min.js"></script>
 <script>
     let puntuacionCurbGlobal = null;
+    let animacionAlerta = null;
     const guiaData = {
         "SEPSIS": {
             "Sepsis sin foco": {
@@ -1141,21 +1162,37 @@
     }
 
     function toggleFast() {
-        const isChecked = document.getElementById('pen-check').checked;
-        const logicDiv = document.getElementById('fast-logic');
-        const scorePanel = document.getElementById('score-panel');
-    
-        if (isChecked) {
-            logicDiv.style.display = 'flex';
-            scorePanel.style.display = 'block';
-            calcFast(); // Fuerza el cálculo de "0 puntos" al activar PEN
-        } else {
-            logicDiv.style.display = 'none';
-            scorePanel.style.display = 'none';
-            // Resetear checks internos al desactivar
-            document.querySelectorAll('.pf-calc').forEach(c => c.checked = false);
+    const isChecked = document.getElementById('pen-check').checked;
+    const logicDiv = document.getElementById('fast-logic');
+    const scorePanel = document.getElementById('score-panel');
+    const btnAlergia = document.querySelector('[data-bs-target="#collAlergia"]');
+
+    if (isChecked) {
+        logicDiv.style.display = 'flex';
+        scorePanel.style.display = 'block';
+        calcFast(); // Fuerza el cálculo al activar
+    } else {
+        logicDiv.style.display = 'none';
+        scorePanel.style.display = 'none';
+        
+        // 1. Resetear checks internos
+        document.querySelectorAll('.pf-calc').forEach(c => c.checked = false);
+        
+        // 2. Detener la animación si existe
+        if (animacionAlerta) {
+            animacionAlerta.cancel();
+            animacionAlerta = null;
+        }
+
+        // 3. Limpiar estilos manuales y recuperar el rojo de Bootstrap
+        if (btnAlergia) {
+            btnAlergia.style.backgroundColor = ""; // Quita el fondo de la animación
+            btnAlergia.style.color = "";           // Quita el negro manual para que mande el CSS
+            btnAlergia.classList.remove('alerta-penfast-activa'); // Quita tu clase
+            btnAlergia.classList.add('text-danger'); // Asegura que vuelve a ser rojo
         }
     }
+}
 
 function calcFast() {
     let pts = 0;
@@ -1189,6 +1226,37 @@ function calcFast() {
         panel.style.backgroundColor = "#dc3545";
         panel.style.color = "#fff";
         panel.innerText = pts + " Puntos - Alto Riesgo (50%)";
+    }
+        
+    const botonAcordeon = document.querySelector('[data-bs-target="#collAlergia"]');
+    
+    if (botonAcordeon) {
+        if (pts > 0) {
+            if (!animacionAlerta) {
+                animacionAlerta = botonAcordeon.animate([
+                    { backgroundColor: 'white' },
+                    { backgroundColor: '#ffda6a' }
+                ], {
+                    duration: 800,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                    easing: 'ease-in-out'
+                });
+                botonAcordeon.classList.remove('text-danger');
+                botonAcordeon.style.color = "#000"; // Se pone negro mientras parpadea
+                botonAcordeon.style.fontWeight = "bold";
+            }
+        } else {
+            if (animacionAlerta) {
+                animacionAlerta.cancel();
+                animacionAlerta = null;
+                
+                // --- LAS CLAVES PARA VOLVER AL ROJO ---
+                botonAcordeon.style.backgroundColor = ""; 
+                botonAcordeon.style.color = ""; // <--- Esto elimina el "negro" manual
+                botonAcordeon.classList.add('text-danger'); // <--- Esto recupera el rojo de Bootstrap
+            }
+        }
     }
 }
 
@@ -1230,6 +1298,11 @@ function calcFast() {
         document.getElementById('sub-box').style.display = 'block';
     }
 
+    document.getElementById('collMDR').addEventListener('hidden.bs.collapse', function () {
+        const header = document.querySelector('[data-bs-target="#collMDR"]');
+        header.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    
     function actualizarCurbEnVivo() {
         let pts = 0;
         if (document.getElementById('c-c').checked) pts++;
@@ -1908,27 +1981,37 @@ function resetearSelector(selector) {
             modalCandida.show();
             }, 400);
     }
-    function cerrarCalculadoraYVolver() {
-        // 1. Cerramos la calculadora
+    
+    // ESCUCHADOR GLOBAL DE CIERRE DE CALCULADORA
+    document.addEventListener('DOMContentLoaded', function() {
         const modalCandidaEl = document.getElementById('modalCandida');
-        const instanciaCandida = bootstrap.Modal.getInstance(modalCandidaEl);
-        if (instanciaCandida) instanciaCandida.hide();
 
-        // 2. Si veníamos de tratamiento, lo reabrimos
-        if (vieneDeTratamiento) {
-            setTimeout(() => {
-                // Limpieza de seguridad
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        if (modalCandidaEl) {
+            // Este evento se dispara SIEMPRE que el modal se cierra (X, botón, etc.)
+            modalCandidaEl.addEventListener('hidden.bs.modal', function () {
             
-                // Reabrimos la modal de recomendación (que aún conserva el texto de la Peritonitis)
-                const modalRec = new bootstrap.Modal(document.getElementById('modalRec'));
-                modalRec.show();
-            
-                // Reseteamos la variable para la próxima vez
-                vieneDeTratamiento = false;
-            }, 400);
+                // Solo si venimos de Peritonitis, reabrimos el tratamiento
+                if (typeof vieneDeTratamiento !== 'undefined' && vieneDeTratamiento) {
+                
+                    setTimeout(() => {
+                        // Limpieza total de backdrops para que no se quede la pantalla oscura
+                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                        document.body.classList.remove('modal-open');
+                        document.body.style.paddingRight = '';
+
+                        // Reabrimos la modal de recomendación
+                        const modalRec = new bootstrap.Modal(document.getElementById('modalRec'));
+                        modalRec.show();
+
+                        // IMPORTANTE: Reseteamos la variable para que si la abre 
+                        // desde el menú principal no intente volver a Peritonitis
+                        vieneDeTratamiento = false;
+                    }, 150); 
+                }
+            });
         }
-}
+    });
+    
     function showSemaforo() {
         // Si la imagen tenía zoom de una vez anterior, se lo quitamos al abrir
         const img = document.getElementById('img-semaforo');
