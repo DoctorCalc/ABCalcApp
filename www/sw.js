@@ -1,4 +1,4 @@
-const CACHE_NAME = 'abcalc-v1.0.10'; 
+const CACHE_NAME = 'abcalc-v1.0.14'; 
 
 const ASSETS = [
   './',
@@ -11,7 +11,8 @@ const ASSETS = [
   './manifest.json',
   './icons/icon-48.png',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/icon-maskable.png'
 ];
 
 // 1. INSTALACIÓN: Cachear y forzar activación inmediata
