@@ -18,7 +18,7 @@
          body { background-color: #d2d3d4; font-family: 'Segoe UI', Roboto, sans-serif; color: #333; }
         .header-app { background: var(--azul-husc); color: white; padding: 15px; border-bottom: 5px solid var(--verde-husc); position: sticky; top: 0; z-index: 1000; }
         .container-app { width: 100%; padding: 10px; margin: 0 auto; }
-        .card-main { border: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background: white; overflow: hidden; }
+        .card-main { border: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background: white; overflow: visible !important; }
         
         /* Ajuste Renal Style */
         .renal-calc { background: #eef7ff; border: 1px solid var(--azul-husc); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
@@ -150,26 +150,32 @@
         }
         }
         
-        @media (max-width: 768px) {
-        /* Forzamos el SELECT para que sea una zona de toque gigante */
-        select.form-select-lg {
-        -webkit-appearance: none; /* Quitamos el diseño de Apple para controlarlo nosotros */
-            appearance: none;
-            height: 65px !important; 
-            font-size: 18px !important;
-            background-color: #ffffff !important;
-            padding-right: 40px !important; /* Espacio para la flecha */
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 16px 12px;
+        /* Estilo para las opciones del desplegable */
+        .dropdown-item {
+            white-space: normal; /* Permite que el texto largo salte de línea si es necesario */
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1.2rem !important; /* Aquí es donde ganas la batalla al iPhone */
+            color: #333;
         }
 
-        /* TRUCO MAESTRO: Aumentamos el zoom del sistema solo para el selector */
-        select.form-select-lg:active, 
-        select.form-select-lg:focus {
-            font-size: 18px !important;
+        .dropdown-item:active {
+            background-color: #004a99;
         }
+        /* Forzamos a que el menú desplegable esté siempre por encima */
+        .dropdown-menu {
+            z-index: 9999 !important; /* Valor muy alto para superponerse a todo */
+            position: absolute !important;
+            background-color: white !important;
+            border: 1px solid rgba(0,0,0,.15);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23) !important;
+        }
+
+        /* Para que el botón parezca un campo de formulario de Bootstrap */
+        #btn-sis {
+            text-align: left;
+            background-color: white;
+            border: 1px solid #ced4da;
+            color: #212529;
         }
         .nota-micro {
             background-color: #f8f9fa;
@@ -325,14 +331,24 @@
            font-size: 0.85rem;
            margin-bottom: 2px;
         }
+        
+        /* Evita que el Modal se pegue a los bordes en pantallas pequeñas */
+        .modal-dialog {
+            margin: 1.5rem auto;
+        }
+        #btn-inf {
+            height: auto !important; /* Permite que el botón sea más alto si el texto ocupa 2 líneas */
+            min-height: 58px;
+            text-align: left; /* Queda más profesional que el texto centrado en listas largas */
+        }
         /* Forzar que la modal activa esté siempre al frente */
         .modal.show {
-           z-index: 1060 !important;
+           z-index: 1070 !important;
            display: block !important;
         }
         /* Forzar que el fondo oscuro esté justo debajo de la modal */
         .modal-backdrop.show {
-           z-index: 1050 !important;
+           z-index: 1065 !important;
         }
         /* Asegurar que el cuerpo de la modal de Candida no sea transparente */
         #modalCandida .modal-content {
@@ -647,24 +663,58 @@
     </div>
 
     <div class="card card-main p-3">
-        <label class="fw-bold text-secondary mb-2">SISTEMA AFECTADO:</label>
-        <select class="form-select form-select-lg mb-3 shadow-sm" id="sel-sis" onchange="updateSub()">
-            <option value="" selected disabled>-- Seleccionar --</option>
-            <option value="SEPSIS">Sepsis y Shock séptico (empírico)</option>
-            <option value="SNC">Sistema Nervioso Central</option>
-            <option value="RESP">Aparato Respiratorio</option>
-            <option value="URIN">Tracto Urinario</option>
-            <option value="ABD">Intraabdominales</option>
-            <option value="ART">Articulares no protésicas</option>
-            <option value="PIEL">Piel y Partes blandas (PPB)</option>
-            <option value="PIE">Pie diabético</option>
-            <option value="ITS">Transmisión Sexual (ITS)</option>
-        </select>
-        <div id="sub-box" style="display:none;">
-            <label class="fw-bold text-success mb-2">PATOLOGÍA ESPECÍFICA:</label>
-            <select class="form-select form-select-lg shadow-sm" id="sel-inf" onchange="openRec()"></select>
-        </div>
+    <label class="fw-bold text-secondary mb-2">SISTEMA AFECTADO:</label>
+    
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-lg w-100 d-flex justify-content-between align-items-center py-3 shadow-sm" 
+                type="button" id="btn-sis" 
+                data-bs-toggle="dropdown" 
+                data-bs-boundary="viewport" 
+                aria-expanded="false" 
+                style="font-size: 1.1rem; z-index: 1050;">
+            <span id="label-sis">-- Seleccionar --</span>
+            <i class="bi bi-chevron-down"></i>
+        </button>
+        
+        <ul class="dropdown-menu w-100 shadow-lg" aria-labelledby="btn-sis" id="menu-sis" style="max-height: 400px; overflow-y: auto;">
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('SEPSIS', 'Sepsis y Shock séptico')">Sepsis y Shock séptico</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('SNC', 'Sistema Nervioso Central')">Sistema Nervioso Central</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('RESP', 'Aparato Respiratorio')">Aparato Respiratorio</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('URIN', 'Tracto Urinario')">Tracto Urinario</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('ABD', 'Intraabdominales')">Intraabdominales</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('ART', 'Articulares')">Articulares</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('PIEL', 'Piel y Partes blandas')">Piel y Partes blandas</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('PIE', 'Pie diabético')">Pie diabético</button></li>
+            <li><button class="dropdown-item py-3 fs-5" type="button" onclick="selectSis('ITS', 'Transmisión Sexual')">Transmisión Sexual</button></li>
+        </ul>
     </div>
+
+    <select id="sel-sis" style="display:none;">
+        <option value=""></option>
+        <option value="SEPSIS">SEPSIS</option>
+        <option value="SNC">SNC</option>
+        <option value="RESP">RESP</option>
+        <option value="URIN">URIN</option>
+        <option value="ABD">ABD</option>
+        <option value="ART">ART</option>
+        <option value="PIEL">PIEL</option>
+        <option value="PIE">PIE</option>
+        <option value="ITS">ITS</option>
+    </select>
+
+    <div id="sub-box" class="mt-3" style="display:none;">
+        <label class="fw-bold text-success mb-2">PATOLOGÍA ESPECÍFICA:</label>
+        <div class="dropdown">
+            <button class="btn btn-outline-success btn-lg w-100 d-flex justify-content-between align-items-center py-3 shadow-sm dropdown-toggle" 
+                    type="button" id="btn-inf" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
+                <span id="label-inf">-- Seleccionar patología --</span>
+            </button>
+            <ul class="dropdown-menu w-100 shadow-lg" id="menu-inf" style="max-height: 400px; overflow-y: auto;">
+            </ul>
+        </div>
+        <select id="sel-inf" style="display:none;"></select>
+    </div>
+</div>
 
     <div id="info-institucional" class="card card-main border-0 shadow-sm mb-3">
         <div class="marco-foto">
@@ -717,7 +767,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.16. © Paco Casado. Granada 2026.
+                    Versión 1.0.18. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -736,7 +786,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.16. © Paco Casado. Granada 2026.
+                        Versión 1.0.18. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -1350,11 +1400,57 @@ function calcFast() {
     });
 
     function updateSub() {
+        resetVisualPat();
         const s = document.getElementById('sel-sis').value;
-        const sub = document.getElementById('sel-inf');
-        sub.innerHTML = '<option value="" selected disabled>-- Seleccionar --</option>';
-        for (let inf in guiaData[s]) { let o = document.createElement('option'); o.value = inf; o.text = inf; sub.appendChild(o); }
-        document.getElementById('sub-box').style.display = 'block';
+        const menuInf = document.getElementById('menu-inf');
+        const subBox = document.getElementById('sub-box');
+
+        if (s && guiaData[s]) {
+            subBox.style.display = 'block';
+            menuInf.innerHTML = ""; // Limpiamos opciones anteriores
+
+            for (let inf in guiaData[s]) {
+                let li = document.createElement('li');
+                li.innerHTML = `
+                    <button class="dropdown-item py-3 fs-5" type="button" 
+                        onclick="selectPat('${inf.replace(/'/g, "\\'")}')">
+                        ${inf}
+                    </button>`;
+                menuInf.appendChild(li);
+            }
+        } else {
+            subBox.style.display = 'none';
+        }
+    }
+
+    function selectPat(valor) {
+        console.log("Pulsado:", valor);
+
+        const selOculto = document.getElementById('sel-inf');
+        const labelVisual = document.getElementById('label-inf');
+
+        if (selOculto && labelVisual) {
+            // 1. Inyectamos el valor para que openRec lo lea
+            selOculto.innerHTML = `<option value="${valor}" selected>${valor}</option>`;
+            selOculto.value = valor;
+        
+            // 2. Actualizamos el botón visual momentáneamente
+            labelVisual.innerText = valor;
+        }
+
+        // 3. Cerramos el desplegable
+        const btnInf = document.getElementById('btn-inf');
+        const bDrop = bootstrap.Dropdown.getOrCreateInstance(btnInf);
+        if (bDrop) bDrop.hide();
+
+        // 4. Lanzamos la lógica del tratamiento
+        setTimeout(() => {
+            openRec();
+        
+            // 5. ¡AQUÍ EL RESET! 
+            // Lo hacemos justo después de lanzar openRec para que el botón vuelva a su estado inicial
+            resetVisualPat();
+        }, 150);
     }
 
     document.getElementById('collMDR').addEventListener('hidden.bs.collapse', function () {
@@ -1380,6 +1476,24 @@ function calcFast() {
         else display.style.color = "#198754"; // Verde
     }
     
+    // Variable global para guardar el valor seleccionado si lo necesitas
+    let sistemaSeleccionado = "";
+
+    function selectSis(valor, texto) {
+        // 1. Actualizamos el texto del botón visual
+        document.getElementById('label-sis').innerText = texto;
+
+        // 2. Sincronizamos el select oculto (el que ya tienes en el HTML)
+        const elSelectOculto = document.getElementById('sel-sis');
+        if (elSelectOculto) {
+            elSelectOculto.value = valor;
+        }
+
+        // 3. Llamamos a la función que rellena el segundo paso
+        // La llamamos sin pasarle 'valor' porque ella lo leerá del select oculto
+        updateSub(); 
+    }
+
     function openRec() {
         const s = document.getElementById('sel-sis').value;
         const selectorPatologia = document.getElementById('sel-inf'); 
@@ -1396,13 +1510,13 @@ function calcFast() {
     if (datos.especial === "SNC_ALG") {
         mostrarPasoAlgoritmo(1);
         new bootstrap.Modal(document.getElementById('modalAlgoritmo')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return; 
     }
 
     if (datos.especial === "CURB_MODAL") {
         new bootstrap.Modal(document.getElementById('modalCurb')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return;
     }
 
@@ -1410,7 +1524,7 @@ function calcFast() {
         document.getElementById('modalDecisionTitulo').innerText = "Valoración Neumonía Grave";
         preguntarSAMR();
         new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return;
     }
 
@@ -1418,7 +1532,7 @@ function calcFast() {
         document.getElementById('modalDecisionTitulo').innerText = "Valoración EPOC Grave";
         preguntarPseudomonas();
         new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return;
     }
 
@@ -1426,13 +1540,13 @@ function calcFast() {
         document.getElementById('modalDecisionTitulo').innerText = "Criterios de Ingreso (Pielo)";
         preguntarIngresoPielo();
         new bootstrap.Modal(document.getElementById('modalDecisionSNC')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return;
     }
     if (datos.especial === "ITS_ALG") {
         mostrarPasoITS(1); // Función que crearemos ahora
         new bootstrap.Modal(document.getElementById('modalITS')).show();
-        resetearSelector(selectorPatologia);
+        resetVisualPat();
         return;
     }
 
@@ -2078,7 +2192,38 @@ function resetearSelector(selector) {
     
         new bootstrap.Modal(document.getElementById('modalSem')).show();
     }
+    
+    function resetVisualPat() {
+        const label = document.getElementById('label-inf');
+        const select = document.getElementById('sel-inf');
+        const menu = document.getElementById('menu-inf'); // También limpiamos la lista visual
+    
+        if (label) label.innerText = "-- Seleccionar patología --";
+        if (select) {
+            select.innerHTML = ""; // Vaciamos las opciones temporales
+            select.value = ""; 
+        }
+    
+        console.log("Selector limpiado con éxito.");
+    }
+    
+    // Forzar a que el dropdown se comporte como un elemento flotante puro
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+      return new bootstrap.Dropdown(dropdownToggleEl, {
+        popperConfig: function (defaultBsPopperConfig) {
+          // Esto hace que la lista flote sobre el viewport, no sobre el div
+          return { ...defaultBsPopperConfig, strategy: 'fixed' };
+        }
+      });
+    });
 
+    document.getElementById('modalRec').addEventListener('hidden.bs.modal', function () {
+        resetVisualPat();
+        // Opcional: limpiar el botón al cerrar el tratamiento
+        // document.getElementById('label-inf').innerText = "-- Seleccionar patología --";
+    });
+    
     function toggleZoom(elemento) {
         elemento.classList.toggle('zoomed');
     
