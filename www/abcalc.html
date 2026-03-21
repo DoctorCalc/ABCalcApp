@@ -150,31 +150,25 @@
         }
         }
         
-        /* 2. Ajuste específico para Móviles (iPhone y Android) */
         @media (max-width: 768px) {
-        /* Forzamos el tamaño del selector */
+        /* Forzamos el SELECT para que sea una zona de toque gigante */
         select.form-select-lg {
-            height: 60px !important;    /* Altura fija para que el dedo no falle */
-            font-size: 18px !important;  /* iOS necesita >16px para no hacer zoom raro */
-            padding-top: 10px !important;
-            padding-bottom: 10px !important;
-            border: 2px solid #dee2e6 !important;
-            background-color: #ffffff !important;
-            display: block !important;
-            width: 100% !important;
-        }
-
-        /* Esto ayuda a que el texto dentro del selector en iPhone sea legible */
-        select.form-select-lg option {
+        -webkit-appearance: none; /* Quitamos el diseño de Apple para controlarlo nosotros */
+            appearance: none;
+            height: 65px !important; 
             font-size: 18px !important;
-            padding: 10px;
+            background-color: #ffffff !important;
+            padding-right: 40px !important; /* Espacio para la flecha */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
         }
 
-        /* Etiquetas de texto (SISTEMA AFECTADO) más grandes para vista rápida */
-        label.fw-bold {
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-            margin-top: 5px;
+        /* TRUCO MAESTRO: Aumentamos el zoom del sistema solo para el selector */
+        select.form-select-lg:active, 
+        select.form-select-lg:focus {
+            font-size: 18px !important;
         }
         }
         .nota-micro {
@@ -723,7 +717,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.15. © Paco Casado. Granada 2026.
+                    Versión 1.0.16. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -742,7 +736,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.15. © Paco Casado. Granada 2026.
+                        Versión 1.0.16. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
