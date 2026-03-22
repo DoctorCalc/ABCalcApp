@@ -60,6 +60,66 @@
             text-justify: inter-word; /* Mejora el reparto del espacio */
         }
         h3{ margin:8px 0; font-weight: bold; font-size:1rem; }
+        
+        /* --- 3. BLOQUE SUPERIOR: AJUSTE RENAL --- */
+        /* Cuadrado arriba, redondeado abajo */
+        #accordionRenal {
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-left-radius: 15px !important;
+            border-bottom-right-radius: 15px !important;
+            overflow: hidden;
+        }
+        /* Al estar cerrado, el botón redondea el final de la App */
+        #btnRenal.collapsed {
+            border-bottom-left-radius: 15px !important;
+            border-bottom-right-radius: 15px !important;
+        }
+        /* --- 2. BLOQUE INTERMEDIO: ALERGIA (PEN-FAST) --- */
+        /* Todo redondeado para encajar en el medio */
+        #accordionAlergia {
+            border-radius: 15px !important;
+            overflow: hidden;
+        }
+        #btnAlergia {
+            border-radius: 15px !important;
+        }
+        /* --- 1. BLOQUE INFERIOR: MULTIRRESISTENTES (MBR) --- */
+        /* Redondeado arriba, cuadrado abajo */
+        #accordionMBR {
+            border-top-left-radius: 15px !important;
+            border-top-right-radius: 15px !important;
+            border-bottom-left-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            border-bottom: none !important; /* Evita doble línea con el de abajo */
+            overflow: hidden;
+        }
+        #btnMBR {
+            border-top-left-radius: 15px !important;
+            border-top-right-radius: 15px !important;
+        }
+        
+        /* --- ELIMINAR EL CONTORNO AZULADO DE LOS BOTONES --- */
+        /* 1. Quitar el borde que sale al hacer clic o mantener pulsado */
+        .accordion-button:focus {
+            z-index: 3;
+            outline: 0 !important;
+            box-shadow: none !important; /* Aquí es donde muere el brillo azul */
+            border-color: rgba(0,0,0,.125); /* Mantiene el borde gris suave original */
+        }
+        /* 2. Quitar el sombreado azul cuando el acordeón está abierto */
+        .accordion-button:not(.collapsed) {
+            box-shadow: none !important; 
+            background-color: #f8f9fa; /* Color de fondo suave cuando está abierto (opcional) */
+        }
+        /* 3. Evitar el resalte azul en dispositivos móviles al tocar (Tap Highlight) */
+        .accordion-button {
+        -webkit-tap-highlight-color: transparent;
+        }
+        .accordion-button:active {
+            background-color: #ececec !important; /* Un gris muy ligero solo mientras se presiona */
+        }
+        
         .alert-alergia {
             border: 2px solid #dc3545 !important; /* Rojo perfilado */
             background-color: #fff5f5; /* Fondo rosado muy suave */
@@ -332,10 +392,26 @@
            margin-bottom: 2px;
         }
         
-        /* Evita que el Modal se pegue a los bordes en pantallas pequeñas */
+        /* --- CONFIGURACIÓN DE LA MODAL (TRATAMIENTO) --- */
+        /* 1. Regla general para TODOS los dispositivos (Centrado por defecto) */
         .modal-dialog {
-            margin: 1.5rem auto;
+           display: flex;
+           align-items: center;
+           min-height: calc(100% - 1rem);
+           margin: 1.75rem auto; /* El 'auto' es la clave para que se centre solo */
         }
+
+        /* 2. Regla específica SOLO para MÓVILES (Pantallas de menos de 576px) */
+        @media (max-width: 575.98px) {
+        .modal-dialog {
+           margin-left: 8px !important;  /* El aire que querías en el iPhone */
+           margin-right: 8px !important;
+           max-width: calc(100% - 16px); /* Obligamos a que no mida más del ancho con márgenes */
+           margin-top: 10px !important; 
+           margin-bottom: 10px !important;
+        }
+        }
+
         #btn-inf {
             height: auto !important; /* Permite que el botón sea más alto si el texto ocupa 2 líneas */
             min-height: 58px;
@@ -352,8 +428,10 @@
         }
         /* Asegurar que el cuerpo de la modal de Candida no sea transparente */
         #modalCandida .modal-content {
-           background-color: white !important;
-           box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+           border-radius: 15px !important;
+           border: none !important;
+           box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+           overflow: hidden; /* Para que las esquinas redondeadas corten el contenido */
         }
         #info-institucional {
            overflow: visible; 
@@ -522,9 +600,9 @@
 
     <div class="accordion mb-3" id="accPrincipal">
         
-        <div class="accordion-item card-main">
+        <div class="accordion-item card-main" id="accordionRenal">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold text-success" type="button" data-bs-toggle="collapse" data-bs-target="#collRenal">
+                <button class="accordion-button collapsed fw-bold text-success" id="btnRenal" type="button" data-bs-toggle="collapse" data-bs-target="#collRenal">
                     ⚙️ Ajuste Renal (Cockcroft-Gault)
                 </button>
             </h2>
@@ -567,9 +645,9 @@
             </div>
         </div>
 
-        <div class="accordion-item card-main">
+        <div class="accordion-item card-main" id="accordionAlergia">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collAlergia">
+                <button class="accordion-button collapsed fw-bold text-danger" id="btnAlergia" type="button" data-bs-toggle="collapse" data-bs-target="#collAlergia">
                     🛡️ Evaluación Alergia (PEN-FAST)
                 </button>
             </h2>
@@ -599,9 +677,9 @@
             </div>
         </div>
 
-        <div class="accordion-item card-main">
+        <div class="accordion-item card-main" id="accordionMBR">
             <h2 class="accordion-header" id="headingMDR" tabindex="-1" style="outline: none;">
-               <button class="accordion-button collapsed fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
+               <button class="accordion-button collapsed fw-bold text-primary" id="btnMBR" type="button" data-bs-toggle="collapse" data-bs-target="#collMDR">
                    <span class="me-1">⚠️</span>
                    <span style="flex: 1;">Criterios riesgo multirre&shy;sistentes (MDR)</span>
                </button>
@@ -767,7 +845,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.18. © Paco Casado. Granada 2026.
+                    Versión 1.0.19. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -786,7 +864,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.18. © Paco Casado. Granada 2026.
+                        Versión 1.0.19. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -1609,7 +1687,7 @@ function calcFast() {
             </div>
             <div class="btn-calculadora mb-3" 
                 onclick="abrirCalculadoraDesdeModal()" 
-                style="background-color: #fce4ec; color: #c2185b; border: 1px solid #f8bbd0; cursor: pointer; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;">
+                style="background-color: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; cursor: pointer; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;">
                 CALCULAR CANDIDA SCORE
             </div>
         
