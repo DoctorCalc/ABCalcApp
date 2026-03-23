@@ -1,6 +1,6 @@
 {
   "id": "/ABCalcApp/",
-  "name": "ABCalc - Guía Antibioterapia",
+  "name": "ABCalc",
   "short_name": "ABCalc",
   "description": "Guía de Antibioterapia HUCSC de Granada",
   "start_url": "/ABCalcApp/www/index.html",

@@ -21,7 +21,7 @@
         .card-main { border: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background: white; overflow: visible !important; }
         
         /* Ajuste Renal Style */
-        .renal-calc { background: #eef7ff; border: 1px solid var(--azul-husc); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .renal-calc { background: #d1dce6; border: 1px solid var(--azul-husc); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .renal-table { font-size: 0.85rem; width: 100%; border-collapse: collapse; }
         .renal-table th { background: var(--azul-husc); color: white; padding: 8px; }
         .renal-table td { border-bottom: 1px solid #dee2e6; padding: 8px; transition: background-color 0.3s ease; }
@@ -845,7 +845,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.19. © Paco Casado. Granada 2026.
+                    Versión 1.0.20. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -864,7 +864,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.19. © Paco Casado. Granada 2026.
+                        Versión 1.0.20. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -981,9 +981,9 @@
 <div class="modal" id="modalCandida" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold">Candida Score</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header text-white" style="background-color: #f3e5f5;">
+                <h4 class="modal-title fw-bold" style="color: #7b1fa2;">Candida Score</h4>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div id="candida-total-display" class="text-center fw-bold mb-3" style="font-size: 1.2rem; color: #d63384;">
@@ -1033,22 +1033,22 @@
                 a: "Levofloxacino 500mg/12h + Gentamicina 5mg/kg/24h",
             },   
             "Shock Séptico": {
-                p: "En la primera hora desde la activación del código. <b>Meropenem</b> 2g iv/8h (dosis de carga 1g y posteriormente 2g en perfusión extendida de 3 horas/8h) + <b>Daptomicina</b> 10mg/kg/24h",
-                a: "Aztreonam 2g iv/8h + Amikacina 20mg/kg/24h (peso ajustado) + Daptomicina 10mg/kg/24h",
+                p: "En la primera hora desde la activación del código. <b>Meropenem</b> 2g IV/8h (dosis de carga 1g y posteriormente 2g en perfusión extendida de 3 horas/8h) + <b>Daptomicina</b> 10mg/kg/24h",
+                a: "Aztreonam 2g IV/8h + Amikacina 20mg/kg/24h (peso ajustado) + Daptomicina 10mg/kg/24h",
             },          
         },
         "SNC": {
             "ALGORITMO DE ACTUACIÓN": { p: "VER ALGORITMO INTERACTIVO", a: "VER ALGORITMO INTERACTIVO", especial: "SNC_ALG" },
             "Meningitis (< 50 años)": {
-                p: "<b>Ceftriaxona</b> 2g/12h iv + Dexametasona",
-                a: "Linezolid 600 mg/8h iv + Aztreonam 2g/6h iv",
+                p: "<b>Ceftriaxona</b> 2g/12h IV + Dexametasona",
+                a: "Linezolid 600 mg/8h IV + Aztreonam 2g/6h IV",
             },
             "Meningitis (≥ 50 años y/o comorbilidad)": {
-                p: "<b>Ceftriaxona</b> 2g/12h iv + <b>Ampicilina</b> 2g/4h iv + Dexametasona",
-                a: "Linezolid 600 mg/8h iv + Aztreonam 2g/6h iv",
+                p: "<b>Ceftriaxona</b> 2g/12h IV + <b>Ampicilina</b> 2g/4h IV + Dexametasona",
+                a: "Linezolid 600 mg/8h IV + Aztreonam 2g/6h IV",
             },
             "Encefalitis (empírico)": {
-                p: "<b>Aciclovir</b> 10mg/kg/8h iv",
+                p: "<b>Aciclovir</b> 10mg/kg/8h IV",
                 esViral: true 
             },
         },
@@ -1059,7 +1059,7 @@
                 a: "Moxifloxacino 400 mg/24h vo de 3 a 5 días",
             },
             "Neumonía AC moderada CURB-65 2": {
-                p: "<b>Ceftriaxona</b> 2g/24h iv + <b>Azitromicina</b> 500mg/24h durante 3 días",
+                p: "<b>Ceftriaxona</b> 2g/24h IV + <b>Azitromicina</b> 500mg/24h durante 3 días",
                 a: "Levofloxacino 500 mg/12h durante 5 a 7 días",
             },    
             "Neumonía AC grave CURB-65 ≥ 3": { especial: "S_GRAVE" }, // Opción especial          
@@ -1081,19 +1081,19 @@
                 esViral: false
             },
             "Prostatitis (pedir ITS si procede)": {
-                p: "<b>Ceftriaxona</b> 2g/24h iv. Al alta, <b>ciprofloxacino</b> 750/12h de 14 a 21 días",
+                p: "<b>Ceftriaxona</b> 2g/24h IV. Al alta, <b>ciprofloxacino</b> 750/12h de 14 a 21 días",
                 a: "Cotrimoxazol (160/800mg) po: 1/12h de 14 a 21 días",
                 esViral: false
             },
             "Orquiepididimitis (pedir ITS)": {
-                p: "<b>Ceftriaxona</b> 2g iv. Al alta, <b>ciprofloxacino</b> 750/12h po",
-                a: "Ciprofloxacino 400mg/12h iv",
+                p: "<b>Ceftriaxona</b> 2g IV. Al alta, <b>ciprofloxacino</b> 750/12h po",
+                a: "Ciprofloxacino 400mg/12h IV",
                 esViral: false
             },
             "Pielonefritis": { especial: "ITU_PIELO" }, // Clave especial
             "Pielonefritis con criterios de Shock séptico": {
                 p: "<b>Imipenem</b> 1g/8h IV + <b>amikacina</b> 20mg/kg/24h (peso ajustado)",
-                a: "Aztreonam 2g/8h IV + amikacina 20mg/kg/24h IV (Si riesgo de enterococo + linezolid 600mg/12hIV)",
+                a: "Aztreonam 2g/8h IV + amikacina 20mg/kg/24h IV (Si riesgo de enterococo + linezolid 600mg/12h IV)",
                 esViral: false
             },
         },
@@ -1955,7 +1955,7 @@ function resetearSelector(selector) {
         // Definimos los tratamientos según la respuesta
         let titulo = tieneSAMR ? "Neumonía Grave (Con Riesgo SAMR)" : "Neumonía Grave (Sin Riesgo SAMR)";
         let t_eleccion = tieneSAMR 
-            ? "<b>Meropenem</b> 2g/8h iv + <b>Linezolid</b> 600 mg/12h (suspensión de terapia guiada por mejoría clínica y PCT <0,1)" 
+            ? "<b>Meropenem</b> 2g/8h IV + <b>Linezolid</b> 600 mg/12h (suspensión de terapia guiada por mejoría clínica y PCT <0,1)" 
             : "<b>Ceftarolina</b> 600 mg/8h (suspensión de terapia guiada por mejoría clínica y PCT <0,1) + <b>Azitromicina</b> 500 mg/24h durante 3 días";
         let t_alergia = tieneSAMR
             ? "Levofloxacino 500 mg/12h + Linezolid 600 mg/12h"
@@ -2029,8 +2029,8 @@ function resetearSelector(selector) {
     
        // Ajuste de dosis según guías habituales de EPOC
        let t_eleccion = tienePseudo 
-           ? "<b>Cefepine</b> 2g/8h iv o <b>Meropenem</b> 2g/8h iv" 
-           : "<b>Ceftriaxona</b> 2g/24h iv de 7 a 10 días";
+           ? "<b>Cefepine</b> 2g/8h IV o <b>Meropenem</b> 2g/8h IV" 
+           : "<b>Ceftriaxona</b> 2g/24h IV de 7 a 10 días";
         
        let t_alergia = tienePseudo
            ? "Levofloxacino 500mg/12h + Amikacina 15-30mg/kg/día de 7 a 10 días"
