@@ -3,7 +3,8 @@
   "name": "ABCalc",
   "short_name": "ABCalc",
   "description": "Guía de Antibioterapia HUCSC de Granada",
-  "start_url": "/ABCalcApp/www/index.html",
+  "start_url": "./index.html",
+  "scope": "/ABCalcApp/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
@@ -20,13 +21,13 @@
       "src": "icons/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "icons/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "icons/icon-maskable.png", 
