@@ -739,7 +739,21 @@
             </div>
         </div>
     </div>
-
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body p-2">
+                    <button type="button" 
+                            class="btn btn-danger w-100 py-3 fw-bold d-flex align-items-center justify-content-center" 
+                            onclick="abrirCodigoSepsis()"
+                            style="font-size: 1.1rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-exclame-triangle-fill me-2"></i>
+                        ACCESO A CÓDIGO SEPSIS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="card card-main p-3">
     <label class="fw-bold text-secondary mb-2">SISTEMA AFECTADO:</label>
     
@@ -845,7 +859,7 @@
              Esta herramienta está basada en la guía de antibioterapia del HUCS de 2025.
              No sustituye el juicio clínico profesional. Comprobar siempre los fármacos y las dosis indicadas.
              <span class="footer-version">
-                    Versión 1.0.21. © Paco Casado. Granada 2026.
+                    Versión 1.1.0. © Paco Casado. Granada 2026.
             </span>
         </em>
      </div>
@@ -864,7 +878,7 @@
                     ABCalc es una aplicación desarrollada por <strong>DoctorCalc ©</strong>, basada en la <em>Guía de Antibioterapia del Hospital Universitario Clínico San Cecilio</em> de 2025, 
                     elaborada por la Comisión de infecciones hospitalarias HUCSC, Grupo PROA HUCSC y Grupo CÓDIGO SÉPSIS HUCSC. 
                     <span class="footer-version">
-                        Versión 1.0.21. © Paco Casado. Granada 2026.
+                        Versión 1.1.0. © Paco Casado. Granada 2026.
                     </span> 
                 </div>
             </div>
@@ -1477,6 +1491,10 @@ function calcFast() {
         display.style.color = "#d63384";
     });
 
+    function abrirCodigoSepsis() {
+        window.location.href = 'sepsis.html';
+    }
+    
     function updateSub() {
         resetVisualPat();
         const s = document.getElementById('sel-sis').value;

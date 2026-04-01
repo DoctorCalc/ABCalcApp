@@ -1,11 +1,13 @@
-const CACHE_NAME = 'abcalc-v1.0.21'; 
+const CACHE_NAME = 'abcalc-v1.1.0'; 
 
 const ASSETS = [
   './',
   './index.html',
   './abcalc.html',
+  './sepsis.html',
   './ABCalc.png',
   './Hospital.jpg',
+  './logoclin2.jpg',
   './fonts/poppins-v24-latin-600.woff2',
   './fonts/poppins-v24-latin-regular.woff2',
   './css/bootstrap.min.css',

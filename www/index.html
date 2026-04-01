@@ -124,6 +124,32 @@
             border-bottom-width: 2px;
             background-color: #152f6b;
         }
+        .sepsis-button {
+            display: block;
+            width: 80%;
+            max-width: 280px;
+            padding: 14px;
+            background-color: #dc3545; /* Un rojo similar al del logo */
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            font-family: inherit; /* Para que no cambie la letra Poppins */
+            font-size: 1.05em;
+            font-weight: 600;
+            transition: all 0.1s ease;
+            border: none;         /* Elimina el relieve y el borde gris */
+            border-bottom: 4px solid #4a0202;
+            text-align: center;   /* Centra el texto (el <button> no lo hace igual que el <a>) */
+            appearance: none;     /* Elimina estilos predeterminados de iOS/Android */
+            outline: none;        /* Evita el recuadro al hacer clic */
+        }
+
+        .sepsis-button:active {
+            transform: translateY(2px); 
+            border-bottom-width: 2px;
+            background-color: #bb2d3b;
+        }
         /* Que el modal esté oculto por defecto para evitar el parpadeo */
         #legalModal {
             display: none; 
@@ -144,7 +170,7 @@
             .description-text {
                 margin-bottom: 0;
             }
-            .calculator-button {
+            .calculator-button, .sepsis-button {
                 font-size: 1em; /* Ligeramente más pequeños en PC */
             }
         }
@@ -222,6 +248,9 @@
        <div class="buttons-container">
             <button onclick="window.location.href='abcalc.html'" class="calculator-button">
             Iniciar Guía
+            </button>
+            <button onclick="window.location.href='sepsis.html'" class="sepsis-button">
+            Código sepsis
             </button>
        </div>
     </main>

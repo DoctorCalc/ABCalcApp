@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Código Sepsis - HUCSC</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="manifest" href="/ABCalcApp/www/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ABCalc">
+    
+    <link rel="apple-touch-icon" href="/ABCalcApp/www/icons/icon-192.png">
+    <link rel="icon" href="/ABCalcApp/www/icons/icon-48.png" type="image/png">
+    <style>
+        :root { --azul-husc: #004a99; }
+        body { background-color: #d2d3d4; padding-bottom: 50px; }
+        .card-sepsis { border-radius: 15px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1.5rem; background-color: #f1f4f8; overflow: hidden; }
+        .bg-danger-custom { background-color: #dc3545 !important; border: none; color: white; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4); }
+        .score-badge { font-size: 2.5rem; width: 80px !important; height: 80px !important; min-width: 80px !important; min-height: 80px !important; display: flex; align-items: center; justify-content: center; border-radius: 50% !important; aspect-ratio: 1 / 1; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.3s ease-in-out; margin-top: 0; flex-shrink: 0; margin: 0 auto; }
+        .sticky-score { position: sticky; top: 10px; z-index: 1000; }
+        .card-sepsis.sticky-score { background-color: #ffffff !important; border: 1px solid #dee2e6 !important; border-left: 5px solid #dc3545 !important; box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important; }
+        .ajuste-vertical-contador {
+           position: relative;
+           /* Subimos el bloque entero 4 píxeles para centrarlo con el texto de la izquierda */
+           transform: translateY(-13px); 
+        }
+        * Sombra Amarilla para Riesgo Medio (5-6 puntos) */
+        .score-badge.bg-warning {
+           color: #212529 !important; /* Texto oscuro para contraste */
+           box-shadow: 0 0 15px rgba(255, 193, 7, 0.6); /* Sombra amarilla intensa */
+           border: 2px solid rgba(255, 193, 7, 0.8); /* Borde fino para definirlo */
+        }
+        /* Sombra Roja para Riesgo Alto (>=7 puntos) - El "Glow" Crítico */
+        .score-badge.bg-danger {
+           box-shadow: 0 0 20px rgba(220, 53, 69, 0.7); /* Sombra roja muy potente */
+           border: 2px solid rgba(220, 53, 69, 0.9); /* Borde fino rojo */
+           animation: glow-danger 1.5s infinite alternate; /* Opcional: Pulso suave */
+        }
+        /* Opcional: Sombra Verde para Riesgo Bajo (Por estética) */
+        .score-badge.bg-success {
+           box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        /* Animación opcional de pulso para la sombra roja */
+        @keyframes glow-danger {
+           from { box-shadow: 0 0 15px rgba(220, 53, 69, 0.6); }
+           to { box-shadow: 0 0 20px rgba(220, 53, 69, 0.9); }
+           }
+        /* Estilo para el texto de identificación de roles */
+        .sticky-score .text-muted {
+           color: #6c757d !important;
+           font-size: 0.75rem;
+           letter-spacing: 0.5px;
+           border-bottom: 1px solid #f0f0f0; /* Una línea muy fina divisoria */
+           padding-bottom: 4px;
+           display: block;
+           width: 100%;
+        }
+        /* Para que el icono del perfil resalte un poco */
+        .sticky-score .text-uppercase {
+           font-weight: 700 !important;
+        }
+        /* Ajustes para el logo de la cabecera */
+        .d-flex img {
+           max-height: 65px; /* Evita que el logo sea demasiado grande */
+           display: block;
+        }
+        @media (max-width: 576px) {
+           h5.text-danger {
+              font-size: 1.1rem; /* Ajuste ligero para que quepa en móviles estrechos */
+           }
+           .d-flex img {
+              height: 45px; /* Logo un poco más pequeño en móvil */
+           }
+        }
+        .news-input {
+              border: 1px solid #dee2e6;
+              border-radius: 8px;
+        }
+        /* SOLUCIÓN AL DESPLEGABLE ESTRECHO */
+        #selectSpO2 {
+            min-height: 45px !important;
+            display: block !important;
+            width: 100% !important;
+            background-color: white !important;
+            color: #212529 !important;
+            border: 1px solid #ced4da !important;
+        }
+        /* Obligamos al badge a ser receptivo a la animación */
+        #header-uci-badge {
+            background-color: #dc3545 !important;
+            color: white !important;
+            font-weight: bold !important;
+            padding: 0.4rem 0.7rem !important;
+            border-radius: 8px !important;
+            /* HEMOS QUITADO EL DISPLAY: INLINE-BLOCK !IMPORTANT DE AQUÍ */
+            transition: all 0.2s ease;
+            cursor: pointer !important;
+        }
+        /* Esta es la clase que el JS añade */
+        .alerta-header-anim {
+            animation: sirena-hospital 0.8s infinite !important;
+            -webkit-animation: sirena-hospital 0.8s infinite !important;
+        }
+        /* Definición de la animación con nombres únicos */
+        @keyframes sirena-hospital {
+            0% { 
+                transform: scale(1);
+                filter: brightness(1); /* Color normal */
+                box-shadow: 0 0 0px rgba(220, 53, 69, 0);
+            }
+            50% { 
+                transform: scale(1.0); /* Crece un poco */
+                filter: brightness(0.8); /* SE OSCURECE MUCHO (Casi negro) */
+                box-shadow: 0 0 10px rgba(220, 53, 69, 0.8); /* Brillo externo */
+            }
+            100% { 
+                transform: scale(1);
+                filter: brightness(1);
+                box-shadow: 0 0 0px rgba(220, 53, 69, 0);
+            }
+        }
+        @-webkit-keyframes sirena-hospital {
+           0% { transform: scale(1); filter: brightness(1); }
+           50% { transform: scale(1.1); filter: brightness(0.4); }
+           100% { transform: scale(1); filter: brightness(1); }
+        }
+        /* Estilo para los textos del NEWS2 */
+        .fw-bold { color: #333; }
+        /* Animación para la tarjeta grande de abajo */
+        .alerta-critica-anim {
+           border: 4px solid #dc3545 !important;
+           background-color: #ffffff !important;
+           animation: pulse-red 1.5s infinite !important;
+        }
+        @keyframes pulse-red {
+           0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+           70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
+           100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        /* Línea de activación en el marcador */
+        #sepsis-activation-zone {
+           border-top: 2px dashed #dc3545 !important;
+        }
+        /* Animación de pulso para el bloque de activación */
+        .animate-pulse-text {
+           animation: pulse-activation 1.5s infinite ease-in-out;
+        }
+        /* --- ANIMACIÓN CRÍTICA PARA AVISO UCI --- */
+        .animate-pulse {
+           animation: pulse-danger 1.5s infinite;
+           box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+        }
+        @keyframes pulse-danger {
+           0% { transform: scale(1); opacity: 1; }
+           50% { transform: scale(1.03); opacity: 0.9; } /* Crece un poquito */
+           100% { transform: scale(1); opacity: 1; }
+        }
+        /* --- ESTADO DE BOTONES SELECCIONADOS --- */
+        .uci-check-btn.active {
+           background-color: #dc3545 !important;
+           color: white !important;
+           border-color: #a71d2a !important;
+           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+           font-weight: bold;
+        }
+        @keyframes pulse-activation {
+           0% { transform: scale(1); brightness: 1; }
+           50% { transform: scale(1.02); filter: brightness(1.2); } /* Brilla un poco más en el medio */
+           100% { transform: scale(1); brightness: 1; }
+        }
+        /* Aseguramos que el contenedor rojo sea realmente rojo intenso */
+        .bg-danger {
+           background-color: #dc3545 !important;
+        }
+        @keyframes text-pulse {
+           0% { opacity: 1; }
+           50% { opacity: 0.7; }
+           100% { opacity: 1; }
+        }
+        #alerta-instruccion {
+           font-size: 1.1rem;
+           margin: 5px 0;
+           text-transform: uppercase;
+        }
+        #alerta-sepsis {
+           transition: background-color 0.3s ease, color 0.3s ease;
+           border: none; /* Quitamos el borde por defecto de las alerts para que el color sea plano */
+        }
+        /* Forzar texto blanco en la alerta roja de abajo */
+        #alerta-sepsis.bg-danger-custom, 
+        #alerta-sepsis.bg-danger-custom h5, 
+        #alerta-sepsis.bg-danger-custom #alerta-instruccion, 
+        #alerta-sepsis.bg-danger-custom small {
+           color: white !important;
+        }
+        @media (max-width: 400px) {
+           .ajuste-vertical-contador {
+            /* En móvil, a veces es mejor quitar el desplazamiento negativo 
+               para que no choque con el texto superior */
+               transform: translateY(0); 
+               gap: 10px; /* Espacio entre botón y círculo */
+           }
+           .score-badge {
+               width: 65px !important; /* Un pelín más pequeño en móviles muy estrechos */
+               height: 65px !important;
+               min-width: 65px !important;
+               font-size: 1.5rem;
+           }
+           #sepsis-treatment-zone .card-body {
+               padding: 10px;
+               }
+        }
+        .shadow-xs {
+           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        #sepsis-treatment-zone .btn {
+           transition: transform 0.1s ease;
+           font-weight: 500;
+        }
+        #sepsis-treatment-zone .btn:active {
+           transform: scale(0.98);
+        }
+        /* Estilos para la Modal */
+        .modal-content {
+           border-radius: 15px;
+           overflow: hidden;
+        }
+        #inputPesoModal:focus {
+           box-shadow: 0 0 0 0.25 margin-top rgba(13, 110, 253, 0.25);
+           background-color: #f8f9fa;
+        }
+        /* Evitar que el teclado del móvil desplace mal la modal */
+        .modal-dialog-centered {
+           display: flex;
+           align-items: center;
+           min-height: calc(100% - 1rem);
+        }
+        .italic { font-style: italic; }
+        #sepsis-stabilization-zone .alert {
+           border-left: 5px solid;
+           transition: all 0.3s ease;
+        }
+        #estabilizacion-error {
+           background-color: #f8d7da;
+           border-color: #f5c2c7;
+           color: #842029;
+        }
+        /* ============================================================
+        ESTILOS PREMIUM CON RELIEVE PARA BOTONES DE NAVEGACIÓN (PIE)
+        ============================================================ */
+        .btn-lg {
+           font-size: 1.2rem;
+           font-weight: 600; /* Texto más nítido */
+           padding: 15px 25px;
+           border-radius: 12px; /* Esquinas más suaves */
+           transition: all 0.2s ease-in-out; /* Transición suave de efectos */
+           text-transform: uppercase; /* Toque más profesional */
+           letter-spacing: 0.5px;
+           border: none; /* Quitamos el borde plano de Bootstrap */
+           position: relative; /* Para el efecto de luz interno */
+           overflow: hidden;
+        }
+        /* --- Efecto general de "Levantado" (Sombras) --- */
+        .btn-lg {
+           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.11), 
+                       0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        /* --- Efecto de Brillo Superior (simula luz) --- */
+        .btn-lg::after {
+           content: '';
+           position: absolute;
+           top: 0; left: 0; width: 100%; height: 50%;
+           background: linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+           pointer-events: none;
+        }
+        /* --- BOTÓN DERECHA: RESET (DANGER) CON RELIEVE --- */
+        #btnResetFinal {
+        /* Degradado de rojo claro a rojo oscuro */
+           background: linear-gradient(135deg, #ee5253 0%, #d63031 100%);
+           color: white !important;
+           text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* Sombra de texto */
+        }
+        /* Hover Reset */
+        #btnResetFinal:hover {
+           background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
+           box-shadow: 0 7px 14px rgba(220, 53, 69, 0.3), 
+                       0 3px 6px rgba(220, 53, 69, 0.2);
+        }
+        /* --- BOTÓN IZQUIERDA: VOLVER (OUTLINE-SECONDARY ADAPTADO) --- */
+        .btn-outline-secondary.btn-lg {
+        /* Fondo muy sutil para simular volumen blanco */
+           background: linear-gradient(135deg, #ffffff 0%, #f1f2f6 100%);
+           border: 1px solid #ced4da !important;
+           color: #4b6584 !important;
+           text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+        }
+        /* Hover Volver */
+        .btn-outline-secondary.btn-lg:hover {
+           background: linear-gradient(135deg, #f1f2f6 0%, #e1e2e6 100%);
+           border-color: #adb5bd !important;
+           box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 
+                       0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        /* ============================================================
+         EFECTO DE PULSADO ("HUNDIR" EL BOTÓN) - CLAVE PARA EL REALISMO
+        ============================================================ */
+        .btn-lg:active {
+           transform: translateY(2px) scale(0.98); /* Baja un poco y se encoge */
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) inset !important; /* Sombra INTERNA */
+        }
+        /* Ajustes móviles */
+        @media (max-width: 576px) {
+        .btn-lg {
+           font-size: 1.1rem;
+           padding: 14px 20px;
+           width: 100%;
+           margin-bottom: 5px; /* Pequeño espacio si se apilan */
+        }
+        }
+        .note-footer {
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto; /* Para compatibilidad con algunos móviles antiguos */
+            font-size: 0.80rem;    /* Tamaño discreto */
+            color: #6b7280;        /* Gris suave (text-gray-500) */
+            line-height: 1.4;
+            margin-top: 25px;      /* Espacio respecto a la calculadora */
+            padding: 0 5px;        /* Un poco de aire en los bordes */
+        }
+        .footer-version {
+            display: block;        /* Hace que la versión y autor bajen a una línea nueva */
+            margin-top: 8px;
+            font-size: 0.8rem;
+            text-align: center;    /* El copyright suele quedar mejor centrado */
+            opacity: 0.8;
+        }
+        /* --- CONFIGURACIÓN DE LA MODAL (TRATAMIENTO) --- */
+        .modal-dialog {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+            margin: 1.75rem auto;
+        }
+        @media (max-width: 575.98px) {
+           .modal-dialog {
+               margin-left: 8px !important;
+               margin-right: 8px !important;
+               max-width: calc(100% - 16px);
+               margin-top: 10px !important; 
+               margin-bottom: 10px !important;
+           }
+        }
+        /* --- SECCIONES INTERNAS DE LA MODAL --- */
+        .alert-alergia {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5;
+            color: #a94442;
+            margin-top: 15px;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .alergia-header {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 5px;
+            color: #dc3545;
+        }
+        .nota-micro {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--azul-husc);
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #444;
+        }
+        .nota-micro b { color: var(--azul-husc); }
+        .desescalar-badge {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+            border: 1px dashed #ced4da;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-3">
+    <div class="d-flex align-items-center mb-3">
+        <img src="logoclin2.jpg" alt="Logo HUCSC" class="me-3" style="height: 60px; width: auto; object-fit: contain;">
+        <h4 class="text-danger fw-bold mb-0">CÓDIGO SEPSIS HUCSC</h4>
+    </div>
+
+    <div class="card card-sepsis sticky-score">
+        <div class="card-body">
+            <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                👤 IDENTIFICACIÓN: Enfermería / Médico
+            </div>
+        
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center flex-wrap">
+                        <h5 class="mb-0 fw-bold me-2">Puntuación NEWS2</h5>
+                        <span id="header-uci-badge" class="badge d-none">
+                        ⚠️ AVISAR A UCI (634303)
+                        </span>
+                    </div>
+                    <small id="risk-text" class="text-muted">Inicia la valoración</small>
+                    <div id="monitor-text" class="fw-bold mt-1 small" style="display:none;"></div>
+                </div>
+                <div class="d-flex align-items-center ajuste-vertical-contador">
+                    <div id="total-score" class="score-badge bg-secondary text-white fw-bold">0</div>
+                </div>
+            </div>
+        </div>
+        <div id="sepsis-activation-zone" class="d-none mt-2 pt-2 border-top border-danger">
+            <div class="d-flex align-items-center justify-content-center bg-danger rounded p-2 shadow-sm">
+                <span class="fw-bold animate-pulse-text text-white" style="font-size: 0.9rem;">
+                    📢 ACTIVACIÓN: El médico debe ACTIVAR CÓDIGO SEPSIS
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card card-sepsis">
+    <form id="news-form" autocomplete="off"></form>
+        <div class="card-body">
+            <label class="form-label fw-bold">Frecuencia Respiratoria</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">12 - 20</option>
+                <option value="1">9 - 11</option>
+                <option value="2">21 - 24</option>
+                <option value="3">≤ 8 o ≥ 25</option>
+            </select>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Saturación de O₂ (SpO₂)</label>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="isEPOC">
+                    <label class="form-check-label" for="isEPOC">¿Paciente EPOC?</label>
+                </div>
+                <select id="selectSpO2" class="form-select news-input valor-normal"></select>
+            </div>
+
+            <label class="form-label fw-bold">¿Oxígeno suplementario?</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">Aire ambiente</option>
+                <option value="2">Si</option>
+            </select>
+
+            <label class="form-label fw-bold">Tensión Sistólica (TAS)</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">111 - 219</option>
+                <option value="1">101 - 110</option>
+                <option value="2">91 - 100</option>
+                <option value="3">≤ 90 o ≥ 220</option>
+            </select>
+
+            <label class="form-label fw-bold">Frecuencia Cardiaca</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">51 - 90</option>
+                <option value="1">41-50 o 91-110</option>
+                <option value="2">111 - 130</option>
+                <option value="3">≤ 40 o ≥ 131</option>
+            </select>
+
+            <label class="form-label fw-bold">Nivel de consciencia</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">Alerta</option>
+                <option value="3">C, V, D, I (Confusión, Voz, Dolor o Inconsciente)</option>
+            </select>
+
+            <label class="form-label fw-bold">Temperatura</label>
+            <select class="form-select mb-3 news-input">
+                <option value="0">36.1 - 38.0</option>
+                <option value="1">35.1-36.0 o 38.1-39.0</option>
+                <option value="2">≥ 39.1</option>
+                <option value="3">≤ 35.0</option>
+            </select>
+        </div>
+    </div>
+    <div id="news-low-risk-zone" class="card shadow-sm border-0 d-none mt-3">
+            <div class="card-header bg-success text-white fw-bold py-2 text-center">
+                <i class="fas fa-eye me-2"></i> PROTOCOLO DE VIGILANCIA ACTIVA
+            </div>
+            <div class="card-body bg-light">
+                <div class="p-3 bg-white border rounded shadow-xs">
+                    <h6 class="fw-bold text-success mb-2">
+                        <i class="fas fa-info-circle me-1"></i> No hay datos actuales que sugieran sepsis.
+                    </h6>
+                    <p class="small mb-2">Se recomienda <strong>vigilar estrechamente</strong> al paciente y realizar una monitorización sistemática de:</p>
+            
+                    <div class="row g-2 text-center">
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">🌡️ Temp.</div></div>
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">💓 F.C.</div></div>
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">📉 T.A.</div></div>
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">💧 Diuresis</div></div>
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">🫁 SpO2</div></div>
+                        <div class="col-4 col-md-2"><div class="p-2 border rounded bg-light small">🧠 GCS</div></div>
+                    </div>
+
+                    <div class="mt-3 p-2 bg-success-subtle border border-success rounded text-success small fw-bold">
+                        <i class="fas fa-sync-alt me-1"></i> Atender a posibles cambios y reevaluar el diagnóstico periódicamente.
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div id="action-plan" class="d-none">
+        <div id="alerta-uci" class="alert alert-dark border-danger border-3 shadow mb-4 d-none alerta-critica-anim">
+            <div class="d-flex align-items-center">
+                <div class="h1 mb-0 me-3">🚑</div>
+                <div>
+                    <h5 class="mb-0 fw-bold text-danger">AVISAR A UCI (Telef. 634303)</h5>
+                    <small>NEWS2 ≥ 7: Requiere valoración de Cuidados Intensivos inmediata.</small>
+                </div>
+            </div>
+            <a href="tel:634303" class="btn btn-danger w-100 mt-2 fw-bold text-white" style="color: white !important;">📞 LLAMAR A UCI</a>
+        </div>
+
+        <div id="alerta-sepsis" class="alert shadow mb-4 d-none">
+            <h5 id="alerta-titulo" class="mb-0 fw-bold">🚨 SEPSIS PROBABLE</h5>
+            <div id="alerta-instruccion" class="fw-bold"></div>
+            <small id="alerta-subtitulo">Activar medidas iniciales en menos de una hora (Código Sepsis)</small>
+        </div>
+        
+        <div class="card card-sepsis">
+            <div class="card-header fw-bold bg-success text-white fw-bold d-flex justify-content-between">
+                <span>MEDIDAS INICIALES (< 1h)</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><input type="checkbox"> Hemocultivos (2 tomas / 4 botes)</li>
+                <li class="list-group-item"><input type="checkbox"> Electrocardiograma</li>
+                <li class="list-group-item"><input type="checkbox"> Muestra microbiológica según foco</li>
+                <li class="list-group-item"><input type="checkbox"> Analítica Código Sepsis</li>
+                <li class="list-group-item"><input type="checkbox"> Láctico venoso /3h hasta estabilización</li>
+            </ul>
+            <div class="card-footer bg-light">
+                <small class="text-muted fw-bold">📞 INCIDENCIAS:</small>
+                <div class="d-flex justify-content-around mt-1">
+                    <a href="tel:758461" class="btn btn-sm btn-outline-primary">Micro: 758461</a>
+                    <a href="tel:759226" class="btn btn-sm btn-outline-primary">Analítica: 759226</a>
+                </div>
+            </div>
+        </div>
+        <div id="sepsis-treatment-zone" class="card shadow-sm border-0 d-none mt-3">
+        <div class="card-header bg-primary text-white fw-bold py-2">
+            <i class="fas fa-pills me-2"></i> PROTOCOLO DE TRATAMIENTO INMEDIATO (< 1 hora)
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white border rounded shadow-xs h-100">
+                            <h6 class="fw-bold text-primary mb-2">1. Fluidoterapia</h6>
+                            <p class="small mb-2">Administrar <strong>Cristaloides a 15 ml/Kg/h la primera hora</strong>.</p>
+                            <button class="btn btn-sm btn-outline-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modalFluidos">
+                                🧮 Abrir Calculadora Cristaloides
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white border rounded shadow-xs h-100">
+                            <h6 class="fw-bold text-primary mb-2">2. Antibioterapia</h6>
+                            <div class="d-grid gap-2 mt-3">
+                                <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAntibioticos">
+                                    💊 Tto. Empírico (Sepsis sin foco)
+                                </button>
+
+                                <button class="btn btn-outline-secondary btn-sm shadow-sm" onclick="window.location.href='abcalc.html'">
+                                    📖 Consultar Guía Completa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <div class="p-3 bg-white border rounded shadow-xs">
+                            <h6 class="fw-bold text-primary mb-2">3. Diagnóstico y Foco</h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-1">🔍 <strong>ANAMNESIS:</strong> Exploración exhaustiva buscando el foco infeccioso probable.</li>
+                                <li>📸 <strong>RADIOLOGÍA:</strong> Solicitar pruebas de imagen según sospecha clínica (Rx Tórax, TAC, etc.).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      <div id="sepsis-resuscitation-zone" class="card shadow-sm border-0 d-none mt-3 mb-4">
+          <div class="card-header bg-danger text-white fw-bold py-2">
+              <i class="fas fa-clock me-2"></i> RESUCITACIÓN (< 3 HORAS)
+          </div>
+          <div class="card-body bg-light">
+        
+              <div class="p-3 bg-white border rounded shadow-xs mb-3">
+                  <h6 class="fw-bold text-danger border-bottom pb-2">📊 Escala qSOFA (Disfunción Orgánica)</h6>
+                  <div class="row g-2 mt-1">
+                      <div class="col-12 col-md-4">
+                          <div class="form-check form-switch p-2 border rounded">
+                              <input class="form-check-input ms-0 me-2 qsofa-input" type="checkbox" id="qsofa-alteracion" value="1">
+                              <label class="form-check-label small" for="qsofa-alteracion">Alteración consciencia (GCS < 15)</label>
+                          </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                          <div class="form-check form-switch p-2 border rounded">
+                              <input class="form-check-input ms-0 me-2 qsofa-input" type="checkbox" id="qsofa-tension" value="1">
+                              <label class="form-check-label small" for="qsofa-tension">TAS ≤ 100 mmHg</label>
+                          </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                          <div class="form-check form-switch p-2 border rounded">
+                              <input class="form-check-input ms-0 me-2 qsofa-input" type="checkbox" id="qsofa-respiracion" value="1">
+                              <label class="form-check-label small" for="qsofa-respiracion">Fr. Resp ≥ 22 pm</label>
+                          </div>
+                      </div>
+                  </div>
+                  <div id="qsofa-result-alert" class="alert alert-secondary mt-3 mb-0 py-2 small d-none">
+                      <strong>Resultado qSOFA: <span id="qsofa-total">0</span>/3</strong>
+                  </div>
+              </div>
+
+              <div id="uci-criteria-zone" class="p-3 bg-white border rounded shadow-xs mb-3 d-none border-danger">
+                  <h6 class="fw-bold text-danger mb-2 small"><i class="fas fa-exclamation-circle"></i> ASOCIADO A CRITERIOS DE GRAVEDAD:</h6>
+                  <div class="row g-2" id="botones-criterios-grave">
+                      <div class="col-6 col-md-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm w-100 uci-check-btn">PAM < 65 mmHg</button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm w-100 uci-check-btn">Láctico ≥ 3.5</button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm w-100 uci-check-btn">Relleno > 3s</button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm w-100 uci-check-btn">Δ Láctico 2 mmol/L</button>
+                      </div>
+                  </div>
+                  <div id="aviso-critico-uci" class="mt-3 p-2 bg-danger text-white fw-bold small text-center rounded d-none animate-pulse"> 
+                      🚨 AVISAR INMEDIATAMENTE A UCI (634303) 
+                  </div>
+              </div>
+
+              <div class="row g-2">
+                  <div class="col-md-6">
+                      <div class="p-3 bg-white border rounded shadow-xs small h-100">
+                          <h6 class="fw-bold text-dark border-bottom pb-1 mb-2">💊 Soporte y Profilaxis</h6>
+                          <ul class="mb-0 ps-3">
+                              <li>Control de glucemia (objetivo < 180).</li>
+                              <li>Profilaxis con IBP y HBPM.</li>
+                              <li>Transfusión si sangrado activo o Hb < 7 g/dL.</li>
+                          </ul>
+                      </div>
+                  </div>
+                  <div class="col-md-6">
+                      <div class="p-3 bg-white border rounded shadow-xs small h-100">
+                          <h6 class="fw-bold text-dark border-bottom pb-1 mb-2">💧 Fluidoterapia 1-3h</h6>
+                          <p class="mb-2">Cristaloides a <strong>15 ml/Kg</strong> (Reevaluar respuesta).</p>
+                          <button class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#modalFluidos">🧮 Recalcular Fluidos</button>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="mt-3 p-3 bg-warning-subtle border border-warning rounded shadow-xs small">
+                  <h6 class="fw-bold text-dark mb-1">📸 Interconsulta a Radiología (735736)</h6>
+                  <p class="mb-0">Indicar <strong>CÓDIGO SEPSIS</strong> en el vale. El paciente inestable <strong>siempre</strong> acompañado por médico o enfermera.</p>
+              </div>
+          </div>
+      </div>
+      <div id="sepsis-stabilization-zone" class="card shadow-sm border-0 d-none mt-3 mb-5">
+          <div class="card-header bg-dark text-white fw-bold py-2">
+              <i class="fas fa-chart-line me-2"></i> ESTABILIZACIÓN (6-12H)
+          </div>
+          <div class="card-body bg-light">
+        
+              <div class="row g-3 mb-3">
+                  <div class="col-md-7">
+                      <div class="p-3 bg-white border rounded shadow-xs h-100">
+                          <h6 class="fw-bold text-dark border-bottom pb-2">📋 Medidas de Control</h6>
+                          <ul class="small mb-0 mt-2">
+                              <li><strong>Analítica:</strong> Control analítico de sepsis completo.</li>
+                              <li><strong>Lactato:</strong> Láctico venoso cada 3 horas hasta estabilización.</li>
+                              <li><strong>Reevaluación:</strong> Monitorizar temperatura, tensión arterial, diuresis y SpO2 frecuentemente.</li>
+                              <li><strong>Antibioterapia:</strong> Si NO se confirma infección, <span class="text-danger fw-bold">suspender ATB</span>.</li>
+                              <li class="mt-2 text-muted italic">🚫 <strong>Excluir:</strong> Pacientes terminales en situación de últimas horas o con limitación de esfuerzo terapéutico.</li>
+                          </ul>
+                      </div>
+                  </div>
+                  <div class="col-md-5">
+                      <div class="p-3 bg-white border rounded shadow-xs h-100 text-center">
+                          <h6 class="fw-bold text-dark border-bottom pb-2">🎯 Objetivos Clínicos</h6>
+                          <div class="d-grid gap-2 mt-2">
+                              <div class="form-check form-switch text-start border rounded p-2">
+                                  <input class="form-check-input ms-0 me-2 obj-check" type="checkbox" id="obj-pam">
+                                  <label class="form-check-label small" for="obj-pam">PAM > 65 mmHg</label>
+                              </div>
+                              <div class="form-check form-switch text-start border rounded p-2">
+                                  <input class="form-check-input ms-0 me-2 obj-check" type="checkbox" id="obj-diuresis">
+                                  <label class="form-check-label small" for="obj-diuresis">Diuresis ≥ 0.5 mL/Kg</label>
+                              </div>
+                              <div class="form-check form-switch text-start border rounded p-2">
+                                  <input class="form-check-input ms-0 me-2 obj-check" type="checkbox" id="obj-spo2">
+                                  <label class="form-check-label small" for="obj-spo2" id="label-obj-spo2">
+                                      SpO2 ≥ 94%
+                                  </label>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <div id="estabilizacion-ok" class="alert alert-success d-none mb-0">
+                  <h6 class="fw-bold mb-1"><i class="fas fa-check-circle"></i> Objetivos Cumplidos</h6>
+                  <p class="small mb-0">Si el foco es drenable, contactar con el servicio/especialidad adecuada.</p>
+              </div>
+
+              <div id="estabilizacion-error" class="alert alert-danger d-none mb-0 animate-pulse">
+                  <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle"></i> OBJETIVOS NO ALCANZADOS</h6>
+                  <p class="small mb-0">Avisar a <strong>UCI</strong> para reevaluación de soporte vasopresor o avanzado.</p>
+              </div>
+          </div>
+      </div>
+    </div>
+    <div class="container-fluid pb-5 mt-4">
+        <div class="row g-3 justify-content-between align-items-center border-top pt-4">
+            <div class="col-12 col-sm-auto order-2 order-sm-1">
+                <a href="abcalc.html" class="btn btn-outline-secondary btn-lg w-100 px-4 shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Guía Antibioterapia
+                </a>
+            </div>
+        
+            <div class="col-12 col-sm-auto order-1 order-sm-2 text-end">
+                <button id="btnResetFinal" class="btn btn-danger btn-lg w-100 px-4 shadow-sm">
+                    <i class="fas fa-sync-alt me-2"></i> Nuevo Paciente / Reset
+                </button>
+            </div>
+        </div>
+        <!-- ============ FOOTER NOTE ============ -->
+         <div class="note-footer">
+             <em>
+                 Esta herramienta está basada en el CÓDIGO SEPSIS del HUCS de 2025.
+                 No sustituye el juicio clínico profesional. Comprobar siempre las actuaciones y las fuentes originales.
+                 <span class="footer-version">
+                        Versión 1.1.0. © Paco Casado. Granada 2026.
+                 </span>
+             </em>
+         </div>
+    </div>
+    
+    <div class="modal fade" id="modalFluidos" tabindex="-1" aria-labelledby="modalFluidosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalFluidosLabel">
+                    <i class="fas fa-calculator me-2"></i>Calculadora de Cristaloides
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-4">
+                    <label for="inputPesoModal" class="form-label fw-bold text-muted small">PESO ESTIMADO DEL PACIENTE (kg):</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" id="inputPesoModal" inputmode="decimal" class="form-control border-primary text-center" placeholder="0" min="0">
+                        <span class="input-group-text bg-primary text-white fw-bold">kg</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded text-center border">
+                    <span class="text-uppercase small fw-bold text-muted d-block mb-1">Volumen a Infundir (15 ml/kg/h)</span>
+                    <div id="resultadoFluidosModal" class="h2 fw-bold text-primary mb-0">0 mL</div>
+                </div>
+
+                <div id="avisoSobrecargaModal" class="alert alert-warning d-none mt-3 mb-0 py-2 small border-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atención:</strong> Volumen elevado (>1500 mL). Valorar riesgo de sobrecarga hídrica.
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary w-100 py-2 fw-bold text-white" data-bs-dismiss="modal">CERRAR Y VOLVER</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalAntibioticos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 6px !important;">
+            <div class="modal-header bg-primary shadow-sm ps-2" style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                <h5 class="modal-title fw-bold text-white" style="color: white !important;">
+                    <i class="fas fa-pills me-2"></i> Sepsis sin foco
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body fs-5">
+                <div class="p-3 mb-3 rounded-3" style="background-color: #cff4fc; border: none;">
+                    <span class="text-uppercase fw-bold d-block mb-2" style="font-size: 1.1rem; color: #055261;">
+                        Tratamiento de Elección:</span>
+                    <div p-3">
+                        <span style="color: #055261;">En la primera hora desde la activación del código. <b>Piperacilina/tazobactam</b> 4g/500mg/6h (dosis de carga y posteriormente perfusión extendida 3-4 horas) + <b>Daptomicina</b> 10mg/kg/24h</span>
+                    </div>
+                </div>
+
+                <div class="alert-alergia">
+                    <span class="alergia-header">⚠ EN CASO DE ALERGIA A BETALACTÁMICOS:</span>
+                    <div class="small">Levofloxacino 500mg/12h + Gentamicina 5mg/Kg/24h</div>
+                </div>
+
+                <div class="nota-micro">
+                    <b>🧫 Protocolo Hemocultivos:</b><br>
+                    Extraer 2 tomas (4 botes) en dos punciones diferentes (simultáneas o separadas 10 mintuos) antes del ATB. Identificar origen (vvp, catéter, etc.)
+                </div>
+                <div class="desescalar-badge">
+                        <i class="fas fa-redo-alt me-1"></i>🔄 Con resultados: DESESCALAR
+                </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+<script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Selección de elementos
+    const epocSwitch = document.getElementById('isEPOC');
+    const spo2Select = document.getElementById('selectSpO2');
+    const scoreBadge = document.getElementById('total-score');
+    const riskText = document.getElementById('risk-text');
+    const monitorText = document.getElementById('monitor-text');
+    const actionPlan = document.getElementById('action-plan');
+    const btnReset = document.getElementById('btnReset');
+    const headerUciBadge = document.getElementById('header-uci-badge');
+    const alertaUci = document.getElementById('alerta-uci');
+    const alertaSepsis = document.getElementById('alerta-sepsis');
+    const alertaInstruccion = document.getElementById('alerta-instruccion');
+    const lowRiskZone = document.getElementById('news-low-risk-zone');
+    const activationZone = document.getElementById('sepsis-activation-zone');
+    const treatmentZone = document.getElementById('sepsis-treatment-zone');
+    const inputPesoModal = document.getElementById('inputPesoModal');
+    const resultadoFluidosModal = document.getElementById('resultadoFluidosModal');
+    const avisoSobrecargaModal = document.getElementById('avisoSobrecargaModal');
+    const resuscitationZone = document.getElementById('sepsis-resuscitation-zone');
+    const qsofaInputs = document.querySelectorAll('.qsofa-input');
+    const qsofaTotalSpan = document.getElementById('qsofa-total');
+    const qsofaAlert = document.getElementById('qsofa-result-alert');
+    const uciCriteriaZone = document.getElementById('uci-criteria-zone');
+    const uciCheckBtns = document.querySelectorAll('.uci-check-btn');
+    const stabilizationZone = document.getElementById('sepsis-stabilization-zone');
+    const objChecks = document.querySelectorAll('.obj-check');
+
+    // Variables de control
+    window.uciAvisado = false;
+    let interaccionIniciada = false;
+
+    // 2. Función de Cálculo NEWS2
+    function calculateScore() {
+        let total = 0;
+        const inputs = document.querySelectorAll('.news-input');
+
+        inputs.forEach(input => {
+            // 1. Sumamos el valor
+            total += parseInt(input.value) || 0;
+
+            // 2. SUSTITUIMOS EL CÓDIGO MANUAL POR LA FUNCIÓN
+            // Borra las líneas de 'input.style.setProperty...' y pon solo esta:
+            aplicarColoresInput(input); 
+        });
+
+        // Seguridad: Si ya hay puntos, es que hay interacción
+        if (total > 0) interaccionIniciada = true; 
+
+        if (scoreBadge) scoreBadge.textContent = total;
+
+        // --- CORRECCIÓN AQUÍ ---
+        // Solo bloqueamos el script si NO se ha tocado nada Y el total es 0.
+        // Si ya hubo interacción (interaccionIniciada === true), seguimos adelante aunque el total sea 0.
+        if (!interaccionIniciada && total === 0) {
+            if (scoreBadge) scoreBadge.className = "score-badge bg-secondary text-white";
+            if (riskText) riskText.textContent = "Iniciar la valoración";
+            lowRiskZone?.classList.add('d-none');
+            return; 
+        }
+
+        // --- CASO A: RIESGO BAJO (0-4) ---
+        if (total < 5) {
+            scoreBadge.className = "score-badge bg-success text-white fw-bold";
+            if (riskText) riskText.textContent = "Riesgo Bajo / Reevaluar";
+            if (monitorText) monitorText.style.display = "none";
+            
+            // Gestión de zona de vigilancia
+            if (interaccionIniciada) {
+                lowRiskZone?.classList.remove('d-none');
+            } else {
+                lowRiskZone?.classList.add('d-none');
+            }
+
+            // Ocultar TODO lo demás
+            actionPlan?.classList.add('d-none');
+            alertaSepsis?.classList.add('d-none');
+            alertaUci?.classList.add('d-none');
+            activationZone?.classList.add('d-none');
+            treatmentZone?.classList.add('d-none');
+            resuscitationZone?.classList.add('d-none');
+            stabilizationZone?.classList.add('d-none');
+            
+            if (headerUciBadge) {
+                headerUciBadge.classList.add('d-none');
+                headerUciBadge.classList.remove('alerta-header-anim');
+            }
+            window.uciAvisado = false;
+        } 
+
+        // --- CASO B: RIESGO MEDIO (5-6) ---
+        else if (total >= 5 && total <= 6) {
+            scoreBadge.className = "score-badge bg-warning text-dark fw-bold";
+            if (riskText) riskText.textContent = "SEPSIS PROBABLE (Riesgo Medio)";
+            
+            const msgMedio = "⏱️ MONITORIZACIÓN HORARIA";
+            if (monitorText) {
+                monitorText.textContent = msgMedio;
+                monitorText.className = "fw-bold mt-1 small text-warning";
+                monitorText.style.display = "block";
+            }
+            if (alertaInstruccion) {
+                alertaInstruccion.textContent = msgMedio;
+                alertaInstruccion.style.color = ""; 
+            }
+
+            // Gestión de visibilidad de módulos
+            lowRiskZone?.classList.add('d-none');
+            actionPlan?.classList.remove('d-none');
+            treatmentZone?.classList.remove('d-none');
+            resuscitationZone?.classList.remove('d-none');
+            stabilizationZone?.classList.remove('d-none');
+
+            if (alertaSepsis) {
+                alertaSepsis.classList.remove('d-none', 'bg-danger-custom', 'text-white');
+                alertaSepsis.classList.add('bg-warning', 'text-dark');
+            }
+
+            alertaUci?.classList.add('d-none');
+            activationZone?.classList.add('d-none');
+            if (headerUciBadge) {
+                headerUciBadge.classList.add('d-none');
+                headerUciBadge.classList.remove('alerta-header-anim');
+            }
+            window.uciAvisado = false;
+        } 
+
+        // --- CASO C: RIESGO ALTO (7+) ---
+        else if (total >= 7) {
+            scoreBadge.className = "score-badge bg-danger text-white fw-bold";
+            if (riskText) riskText.textContent = "SEPSIS PROBABLE (Riesgo Alto)";
+            
+            const msgAlto = "🚨 MONITORIZACIÓN CONTINUA";
+            if (monitorText) {
+                monitorText.textContent = msgAlto;
+                monitorText.className = "fw-bold mt-1 small text-danger";
+                monitorText.style.display = "block";
+            }
+
+            if (alertaSepsis) {
+                alertaSepsis.classList.remove('d-none', 'bg-warning', 'text-dark'); 
+                alertaSepsis.classList.add('bg-danger-custom', 'text-white'); 
+            }
+            if (alertaInstruccion) {
+                alertaInstruccion.textContent = msgAlto;
+                alertaInstruccion.style.color = "white";
+            }
+
+            // Gestión de visibilidad de módulos
+            lowRiskZone?.classList.add('d-none');
+            actionPlan?.classList.remove('d-none');
+            treatmentZone?.classList.remove('d-none');
+            resuscitationZone?.classList.remove('d-none');
+            stabilizationZone?.classList.remove('d-none');
+            
+            alertaUci?.classList.remove('d-none');
+            activationZone?.classList.remove('d-none');
+
+            if (headerUciBadge) {
+                headerUciBadge.classList.remove('d-none');
+                headerUciBadge.classList.add('alerta-header-anim');
+            }
+
+            if (!window.uciAvisado) {
+                setTimeout(() => {
+                    alertaUci?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
+                window.uciAvisado = true;
+            }
+        }
+    }
+
+    // 3. Opciones SpO2
+    function updateSpO2Options() {
+        const elSelect = document.getElementById('selectSpO2');
+        const elSwitch = document.getElementById('isEPOC');
+
+        if (!elSelect) return;
+
+        let options = "";
+        if (elSwitch && elSwitch.checked) {
+            options = `
+                <option value="0">88 - 92% (o ≥ 93% aire ambiente)</option>
+                <option value="1">86 - 87%</option>
+                <option value="2">84 - 85%</option>
+                <option value="3">≤ 83%</option>
+                <option value="1">93 - 94% (con O₂ suplementario)</option>
+                <option value="2">95 - 96% (con O₂ suplementario)</option>
+                <option value="3">≥ 97% (con O₂ suplementario)</option>`;
+        } else {
+            options = `
+                <option value="0">≥ 96%</option>
+                <option value="1">94 - 95%</option>
+                <option value="2">92 - 93%</option>
+                <option value="3">≤ 91%</option>`;
+        }
+
+        elSelect.innerHTML = options;
+
+        // --- AQUÍ ES DONDE SE PONE ---
+        aplicarColoresInput(elSelect); 
+
+        const labelObjetivo = document.getElementById('label-obj-spo2');
+        if (labelObjetivo) {
+            labelObjetivo.innerHTML = (elSwitch && elSwitch.checked) 
+                ? "<strong>Objetivo EPOC:</strong> SpO₂ 88-92%" 
+                : "<strong>Objetivo Estándar:</strong> SpO₂ ≥ 94%";
+        }
+
+        calculateScore();
+    }
+
+    function aplicarColoresInput(input) {
+        if (!input) return;
+    
+        const v = input.value;
+
+        // 1. Limpiamos estilos previos para que no se acumulen
+        input.style.setProperty('color', '', 'important');
+        input.style.setProperty('background-color', '', 'important');
+        input.style.setProperty('font-weight', '', 'important');
+
+        // 2. Aplicamos el nuevo color según el valor de NEWS2
+        if (v === "0") {
+            input.style.setProperty('color', '#0d6efd', 'important');    // Azul (Normal)
+            input.style.setProperty('font-weight', '600', 'important');
+            input.style.setProperty('background-color', '#ffffff', 'important');
+        } else if (v === "3") {
+            input.style.setProperty('color', '#dc3545', 'important');    // Rojo (Crítico)
+            input.style.setProperty('background-color', '#fff5f5', 'important');
+            input.style.setProperty('font-weight', '800', 'important');
+        } else {
+            input.style.setProperty('color', '#212529', 'important');    // Negro (Alterado 1-2)
+            input.style.setProperty('font-weight', 'bold', 'important');
+            input.style.setProperty('background-color', '#ffffff', 'important');
+        }
+    }
+    
+    // 4. Lógica de la Modal de Fluidos
+    if (inputPesoModal) {
+        inputPesoModal.addEventListener('input', function() {
+            const peso = parseFloat(this.value);
+            if (peso > 0) {
+                const volumen = Math.round(peso * 15);
+                resultadoFluidosModal.textContent = volumen + " mL";
+                if (volumen >= 1500) {
+                    avisoSobrecargaModal.classList.remove('d-none');
+                } else {
+                    avisoSobrecargaModal.classList.add('d-none');
+                }
+            } else {
+                resultadoFluidosModal.textContent = "0 mL";
+                avisoSobrecargaModal.classList.add('d-none');
+            }
+        });
+    }
+
+    // 5. Reset y Navegación Final
+    const btnResetFinal = document.getElementById('btnResetFinal');
+    if (btnResetFinal) {
+        btnResetFinal.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Añadimos una confirmación para evitar sustos si se pulsa por error al hacer scroll
+            if (confirm("¿Deseas borrar todos los datos y empezar una nueva valoración?")) {
+                window.location.href = window.location.pathname + window.location.search;
+            }
+        });
+    }
+
+    // 6. Listeners Corregidos
+    if (epocSwitch) epocSwitch.addEventListener('change', updateSpO2Options);
+    
+    // Eliminada la línea de calcularFluidos que no existía
+    
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.classList.contains('news-input')) {
+            interaccionIniciada = true; 
+            calculateScore();
+        }
+    });
+
+    // Detectar interacción en cualquier control del NEWS2
+    document.querySelectorAll('.news-input').forEach(element => {
+        // 'input' es más sensible que 'change' y detecta la interacción inmediata
+        element.addEventListener('input', function() {
+            interaccionIniciada = true; 
+            calculateScore();
+        });
+
+        // Refuerzo para selects: si el médico hace clic aunque no cambie el valor
+        element.addEventListener('click', function() {
+            interaccionIniciada = true; 
+            calculateScore();
+        });
+    });
+
+    if (headerUciBadge) {
+        headerUciBadge.style.cursor = "pointer";
+        headerUciBadge.addEventListener('click', function() {
+            alertaUci?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    // Listener para los cambios en qSOFA
+    qsofaInputs.forEach(input => {
+        input.addEventListener('change', calculateQSOFA);
+    });
+    // 2. Listener para los botones de criterios de gravedad
+    uciCheckBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Intercambiamos las clases de Bootstrap para el efecto visual
+            this.classList.toggle('active');
+            this.classList.toggle('btn-outline-danger');
+            this.classList.toggle('btn-danger');
+        
+            // Lanzamos el cálculo general del qSOFA
+            calculateQSOFA();
+        });
+    });
+    // Listeners para los switches de objetivos
+    objChecks.forEach(check => {
+        check.addEventListener('change', checkObjetivos);
+    });
+
+    updateSpO2Options();
+    
+    // 7. Control Avanzado de la Modal de Fluidos
+    const modalElement = document.getElementById('modalFluidos');
+    
+    if (modalElement) {
+        // FOCO: Poner el cursor en el input automáticamente al abrir
+        modalElement.addEventListener('shown.bs.modal', function () {
+            if (inputPesoModal) {
+                inputPesoModal.focus();
+            }
+        });
+
+        // RESET: Limpiar todo al cerrar
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            if (inputPesoModal) inputPesoModal.value = '';
+            if (resultadoFluidosModal) resultadoFluidosModal.textContent = '0 mL';
+            if (avisoSobrecargaModal) avisoSobrecargaModal.classList.add('d-none');
+        });
+    }
+    // Función para manejar los botones de criterios de gravedad
+    function toggleUciCrit(btn) {
+        btn.classList.toggle('active');
+        btn.classList.toggle('btn-outline-danger');
+        btn.classList.toggle('btn-danger');
+        calculateQSOFA(); // Reevaluamos todo al pulsar
+    }
+
+    function calculateQSOFA() {
+        let qTotal = 0;
+        const qsofaInputs = document.querySelectorAll('.qsofa-input');
+        qsofaInputs.forEach(input => {
+            if (input.checked) qTotal += 1;
+        });
+
+        const qsofaTotalSpan = document.getElementById('qsofa-total');
+        if (qsofaTotalSpan) qsofaTotalSpan.textContent = qTotal;
+    
+        const uciCriteriaZone = document.getElementById('uci-criteria-zone');
+        const qsofaAlert = document.getElementById('qsofa-result-alert');
+        const avisoUciFinal = document.getElementById('aviso-critico-uci');
+    
+        // Contamos cuántos botones tienen la clase 'active'
+        const criteriosActivos = document.querySelectorAll('.uci-check-btn.active').length;
+
+        if (qTotal > 0) {
+            qsofaAlert?.classList.remove('d-none');
+        
+            if (qTotal >= 2) {
+                uciCriteriaZone?.classList.remove('d-none');
+                qsofaAlert.className = "alert alert-danger mt-3 mb-0 py-2 small fw-bold text-white bg-danger";
+            
+                // Lógica de oro: qSOFA >= 2 Y al menos un criterio marcado
+                if (criteriosActivos > 0) {
+                    avisoUciFinal?.classList.remove('d-none');
+                } else {
+                    avisoUciFinal?.classList.add('d-none');
+                }
+            } else {
+                // Si qSOFA baja de 2, ocultamos la zona de gravedad y el aviso
+                uciCriteriaZone?.classList.add('d-none');
+                avisoUciFinal?.classList.add('d-none');
+                qsofaAlert.className = "alert alert-warning mt-3 mb-0 py-2 small text-dark bg-warning";
+            }
+        } else {
+            qsofaAlert?.classList.add('d-none');
+            uciCriteriaZone?.classList.add('d-none');
+        }
+    }
+    function checkObjetivos() {
+        const todosCumplidos = Array.from(objChecks).every(check => check.checked);
+        const algunoMarcado = Array.from(objChecks).some(check => check.checked);
+    
+        const divOk = document.getElementById('estabilizacion-ok');
+        const divError = document.getElementById('estabilizacion-error');
+
+        if (!algunoMarcado) {
+            divOk?.classList.add('d-none');
+            divError?.classList.add('d-none');
+            return;
+        }
+
+        if (todosCumplidos) {
+            divOk?.classList.remove('d-none');
+            divError?.classList.add('d-none');
+        } else {
+            divOk?.classList.add('d-none');
+            divError?.classList.remove('d-none');
+        }
+    }
+});
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/ABCalcApp/www/sw.js')
+        .then(reg => console.log('SW activo para este módulo'))
+        .catch(err => console.error('Error al verificar SW', err));
+    });
+  }
+  // Bloqueo específico para Android/Chrome PWA
+  document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+      event.preventDefault(); // Bloquea el gesto de pinza
+    }
+  }, { passive: false });
+</script>
+</body>
+</html>
