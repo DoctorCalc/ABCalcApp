@@ -452,10 +452,18 @@
                 </div>
             </div>
         </div>
-        <div id="sepsis-activation-zone" class="d-none mt-2 pt-2 border-top border-danger">
+        <div id="banner-rojo" class="d-none mt-2 pt-2 border-top border-danger">
             <div class="d-flex align-items-center justify-content-center bg-danger rounded p-2 shadow-sm">
                 <span class="fw-bold animate-pulse-text text-white" style="font-size: 0.9rem;">
-                    📢 ACTIVACIÓN: El médico debe ACTIVAR CÓDIGO SEPSIS
+                     📢 ACTIVACIÓN: El médico debe ACTIVAR CÓDIGO SEPSIS
+                </span>
+            </div>
+        </div>
+
+        <div id="banner-naranja" class="d-none mt-2 pt-2 border-top border-warning">
+            <div class="d-flex align-items-center justify-content-center rounded p-2 shadow-sm" style="background-color: #ffc107;">
+                <span class="fw-bold animate-pulse-text text-dark" style="font-size: 0.9rem;">
+                     📢 ACTIVACIÓN: El médico debe ACTIVAR CÓDIGO SEPSIS
                 </span>
             </div>
         </div>
@@ -779,7 +787,7 @@
                  Esta herramienta está basada en el CÓDIGO SEPSIS del HUCS de 2025.
                  No sustituye el juicio clínico profesional. Comprobar siempre las actuaciones y las fuentes originales.
                  <span class="footer-version">
-                        Versión 1.1.4. © Paco Casado. Granada 2026.
+                        Versión 1.1.5. © Paco Casado. Granada 2026.
                  </span>
              </em>
          </div>
@@ -896,22 +904,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('.news-input');
 
         inputs.forEach(input => {
-            // 1. Sumamos el valor
             total += parseInt(input.value) || 0;
-
-            // 2. SUSTITUIMOS EL CÓDIGO MANUAL POR LA FUNCIÓN
-            // Borra las líneas de 'input.style.setProperty...' y pon solo esta:
             aplicarColoresInput(input); 
         });
 
-        // Seguridad: Si ya hay puntos, es que hay interacción
         if (total > 0) interaccionIniciada = true; 
 
         if (scoreBadge) scoreBadge.textContent = total;
 
-        // --- CORRECCIÓN AQUÍ ---
-        // Solo bloqueamos el script si NO se ha tocado nada Y el total es 0.
-        // Si ya hubo interacción (interaccionIniciada === true), seguimos adelante aunque el total sea 0.
+        // --- DEFINICIÓN DE BANNERS ---
+        const bRojo = document.getElementById('banner-rojo');
+        const bNaranja = document.getElementById('banner-naranja');
+
+        // Reset de banners al empezar el cálculo
+        if (bRojo) bRojo.classList.add('d-none');
+        if (bNaranja) bNaranja.classList.add('d-none');
+
         if (!interaccionIniciada && total === 0) {
             if (scoreBadge) scoreBadge.className = "score-badge bg-secondary text-white";
             if (riskText) riskText.textContent = "Iniciar la valoración";
@@ -924,15 +932,11 @@ document.addEventListener('DOMContentLoaded', function() {
             scoreBadge.className = "score-badge bg-success text-white fw-bold";
             if (riskText) riskText.textContent = "Riesgo Bajo / Reevaluar";
             if (monitorText) monitorText.style.display = "none";
-            
-            // Gestión de zona de vigilancia
+        
             if (interaccionIniciada) {
                 lowRiskZone?.classList.remove('d-none');
-            } else {
-                lowRiskZone?.classList.add('d-none');
             }
 
-            // Ocultar TODO lo demás
             actionPlan?.classList.add('d-none');
             alertaSepsis?.classList.add('d-none');
             alertaUci?.classList.add('d-none');
@@ -940,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             treatmentZone?.classList.add('d-none');
             resuscitationZone?.classList.add('d-none');
             stabilizationZone?.classList.add('d-none');
-            
+        
             if (headerUciBadge) {
                 headerUciBadge.classList.add('d-none');
                 headerUciBadge.classList.remove('alerta-header-anim');
@@ -952,7 +956,10 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (total >= 5 && total <= 6) {
             scoreBadge.className = "score-badge bg-warning text-dark fw-bold";
             if (riskText) riskText.textContent = "SEPSIS PROBABLE (Riesgo Medio)";
-            
+        
+            // MOSTRAR BANNER NARANJA
+            if (bNaranja) bNaranja.classList.remove('d-none');
+
             const msgMedio = "⏱️ MONITORIZACIÓN HORARIA";
             if (monitorText) {
                 monitorText.textContent = msgMedio;
@@ -960,12 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 monitorText.style.color = "#ff8c00";
                 monitorText.style.display = "block";
             }
-            if (alertaInstruccion) {
-                alertaInstruccion.textContent = msgMedio;
-                alertaInstruccion.style.color = ""; 
-            }
 
-            // Gestión de visibilidad de módulos
             lowRiskZone?.classList.add('d-none');
             actionPlan?.classList.remove('d-none');
             treatmentZone?.classList.remove('d-none');
@@ -976,21 +978,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 alertaSepsis.classList.remove('d-none', 'bg-danger-custom', 'text-white');
                 alertaSepsis.classList.add('bg-warning', 'text-dark');
             }
-
-            alertaUci?.classList.add('d-none');
-            activationZone?.classList.add('d-none');
-            if (headerUciBadge) {
-                headerUciBadge.classList.add('d-none');
-                headerUciBadge.classList.remove('alerta-header-anim');
-            }
-            window.uciAvisado = false;
         } 
 
         // --- CASO C: RIESGO ALTO (7+) ---
         else if (total >= 7) {
             scoreBadge.className = "score-badge bg-danger text-white fw-bold";
             if (riskText) riskText.textContent = "SEPSIS PROBABLE (Riesgo Alto)";
-            
+        
+            // MOSTRAR BANNER ROJO
+            if (bRojo) bRojo.classList.remove('d-none');
+
             const msgAlto = "🚨 MONITORIZACIÓN CONTINUA";
             if (monitorText) {
                 monitorText.textContent = msgAlto;
@@ -998,22 +995,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 monitorText.style.display = "block";
             }
 
-            if (alertaSepsis) {
-                alertaSepsis.classList.remove('d-none', 'bg-warning', 'text-dark'); 
-                alertaSepsis.classList.add('bg-danger-custom', 'text-white'); 
-            }
-            if (alertaInstruccion) {
-                alertaInstruccion.textContent = msgAlto;
-                alertaInstruccion.style.color = "white";
-            }
-
-            // Gestión de visibilidad de módulos
             lowRiskZone?.classList.add('d-none');
             actionPlan?.classList.remove('d-none');
             treatmentZone?.classList.remove('d-none');
             resuscitationZone?.classList.remove('d-none');
             stabilizationZone?.classList.remove('d-none');
-            
+        
             alertaUci?.classList.remove('d-none');
             activationZone?.classList.remove('d-none');
 
