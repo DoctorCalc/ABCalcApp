@@ -787,7 +787,7 @@
                  Esta herramienta está basada en el CÓDIGO SEPSIS del HUCS de 2025.
                  No sustituye el juicio clínico profesional. Comprobar siempre las actuaciones y las fuentes originales.
                  <span class="footer-version">
-                        Versión 1.1.5. © Paco Casado. Granada 2026.
+                        Versión 1.1.6. © Paco Casado. Granada 2026.
                  </span>
              </em>
          </div>
@@ -935,6 +935,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
             if (interaccionIniciada) {
                 lowRiskZone?.classList.remove('d-none');
+            } else {
+                lowRiskZone?.classList.add('d-none');
             }
 
             actionPlan?.classList.add('d-none');
@@ -967,6 +969,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 monitorText.style.color = "#ff8c00";
                 monitorText.style.display = "block";
             }
+            if (alertaInstruccion) {
+                alertaInstruccion.textContent = msgMedio;
+                alertaInstruccion.style.color = ""; 
+            }
 
             lowRiskZone?.classList.add('d-none');
             actionPlan?.classList.remove('d-none');
@@ -978,6 +984,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 alertaSepsis.classList.remove('d-none', 'bg-danger-custom', 'text-white');
                 alertaSepsis.classList.add('bg-warning', 'text-dark');
             }
+            alertaUci?.classList.add('d-none');
+            activationZone?.classList.add('d-none');
+            if (headerUciBadge) {
+                headerUciBadge.classList.add('d-none');
+                headerUciBadge.classList.remove('alerta-header-anim');
+            }
+            window.uciAvisado = false;
         } 
 
         // --- CASO C: RIESGO ALTO (7+) ---
@@ -993,6 +1006,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 monitorText.textContent = msgAlto;
                 monitorText.className = "fw-bold mt-1 small text-danger";
                 monitorText.style.display = "block";
+            }
+            if (alertaSepsis) {
+                alertaSepsis.classList.remove('d-none', 'bg-warning', 'text-dark'); 
+                alertaSepsis.classList.add('bg-danger-custom', 'text-white'); 
+            }
+            if (alertaInstruccion) {
+                alertaInstruccion.textContent = msgAlto;
+                alertaInstruccion.style.color = "white";
             }
 
             lowRiskZone?.classList.add('d-none');
